@@ -361,6 +361,21 @@ body.immersive #hfPill{bottom:calc(14px + env(safe-area-inset-bottom,0px))}
 #homeFloat svg{width:20px;height:20px}
 body.immersive:not(:has(#reader[hidden])) #homeFloat{display:grid}
 @media (max-width:380px){.homebtn span{display:none}}
+
+/* landscape: give the page the room */
+@media (orientation:landscape) and (max-height:540px){
+  .rjump{display:none}
+  .rbar{padding-top:calc(3px + env(safe-area-inset-top,0px));padding-bottom:3px}
+  .rbar .roundbtn{width:34px;height:34px}
+  .rtitle .a{font-size:16px}.rtitle .e{font-size:11px}
+  .pbar{padding-top:3px;padding-bottom:calc(3px + env(safe-area-inset-bottom,0px))}
+  .pbtn{padding:5px 10px;font-size:13px}.zbtn{width:32px;height:32px;font-size:19px}
+  .homebtn{flex-direction:row;gap:5px}
+  .reader main{padding-top:6px;padding-bottom:60px}
+  #cam{width:130px;bottom:calc(52px + env(safe-area-inset-bottom,0px))}
+  #hfPill{bottom:calc(52px + env(safe-area-inset-bottom,0px))}
+  .sheet{max-height:92vh}
+}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 @media (max-width:480px){#cam{width:140px}}
 </style>
@@ -1212,10 +1227,19 @@ async function fitMushaf(){
   const cs = getComputedStyle(pageEl);
   const inner = pageEl.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
   pageEl.style.fontSize = Math.min(80*zoom, 100 * (inner*0.97) / maxW) + "px";
-  const top = document.body.classList.contains("immersive") ? 70 : 250;
+  const bars = ["rbar","rjump","pbar"].map(c=>{ const e=document.querySelector("."+c); return e && getComputedStyle(e).display!=="none" ? e.offsetHeight : 0; });
+  const top = document.body.classList.contains("immersive") ? 70 : bars.reduce((a,b)=>a+b,0) + 40;
   pageEl.style.minHeight = zoom > 1.01 ? "" : Math.max(0, innerHeight - top) + "px";
 }
 let fitTimer; window.addEventListener("resize", ()=>{ clearTimeout(fitTimer); fitTimer=setTimeout(()=>{ if(isReading() && view==="mushaf") fitMushaf(); },120); });
+// when the phone turns: cancel a half-finished page turn, re-fit the page, and let tilt control settle
+function onTurnPhone(){
+  if(flip){ document.querySelectorAll(".leaf,.curl").forEach(n=>n.remove()); const m=bookEl(); if(m){ m.style.clipPath=""; m.style.zIndex=""; } flip=null; turning=false; render(page,{keep:true}); }
+  tiltBase = null; tiltArmed = false; tiltHoldUntil = performance.now() + 1500;
+  clearTimeout(fitTimer); fitTimer = setTimeout(()=>{ if(isReading() && view==="mushaf") fitMushaf(); }, 250);
+}
+if(screen.orientation && screen.orientation.addEventListener) screen.orientation.addEventListener("change", onTurnPhone);
+else window.addEventListener("orientationchange", onTurnPhone);
 
 async function render(p, {keep=false, bottom=false}={}){
   p = Math.min(604, Math.max(1, p|0));
@@ -1567,9 +1591,19 @@ function updatePill(){
 }
 
 // tilt
-let tiltBase = null, tiltArmed = true, tiltSeen = false, tiltCheck = 0;
+let tiltBase = null, tiltArmed = true, tiltSeen = false, tiltCheck = 0, tiltHoldUntil = 0;
+function screenAngle(){ const a = screen.orientation && typeof screen.orientation.angle === "number" ? screen.orientation.angle : (window.orientation || 0); return ((a % 360) + 360) % 360; }
+function sideTilt(e){
+  // left/right tilt as the reader sees it, in portrait or landscape
+  const a = screenAngle();
+  if(a === 90) return e.beta == null ? null : -e.beta;
+  if(a === 270) return e.beta;
+  if(a === 180) return e.gamma == null ? null : -e.gamma;
+  return e.gamma;
+}
 function onTilt(e){
-  const g = e.gamma; if(g == null) return;
+  const g = sideTilt(e); if(g == null) return;
+  if(performance.now() < tiltHoldUntil){ tiltBase = g; tiltSeen = true; return; }
   tiltSeen = true;
   if(tiltBase === null) tiltBase = g;
   const d = g - tiltBase;
