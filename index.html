@@ -32,6 +32,7 @@
 @media (prefers-color-scheme:dark){:root{
   --bg:#0A1311; --card:#111D1A; --page:#121C19; --ink:#E5EFEB; --muted:#93A8A2; --line:#22342F;
   --green:#0C3F35; --green2:#12584A; --gold:#D8B464; --goldsoft:#2C2717; --chip:#182A26; --onGreen:#EAF5F1; color-scheme:dark;}}
+[hidden]{display:none!important}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--ui);font-size:15px}
 button,select,input{font:inherit;color:inherit}
@@ -324,6 +325,26 @@ body.full .pfoot .pn{font-family:var(--ui);font-size:15px;opacity:.6}
 #reader .mushaf{backface-visibility:hidden;transform-style:preserve-3d;background:var(--pbg)}
 .leaf{pointer-events:none}
 .leafshade{position:absolute;inset:0;pointer-events:none;opacity:0;z-index:3}
+
+/* hands-free */
+.hfopts{display:flex;flex-direction:column;gap:10px;margin-bottom:14px}
+.hfopt{display:flex;gap:12px;align-items:flex-start;text-align:left;border:1px solid var(--line);border-radius:14px;padding:12px;background:var(--card)}
+.hfopt:hover,.hfopt.on{border-color:var(--green2);background:var(--chip)}
+.hfic{width:40px;height:40px;border-radius:12px;background:var(--green);color:var(--gold);display:grid;place-items:center;flex:none}
+.hfic svg{width:22px;height:22px}
+.hft{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1}
+.hft b{font-size:15.5px}.hft small{color:var(--muted);font-size:13.5px;line-height:1.45}
+.hft select{margin-top:6px;max-width:220px}
+.privacy{display:flex;gap:10px;align-items:flex-start;background:var(--goldsoft);border-radius:12px;padding:10px 12px;margin-bottom:12px}
+.privacy svg{width:20px;height:20px;flex:none;color:var(--green2);margin-top:2px}
+.privacy p{margin:0;font-size:13.5px;line-height:1.5;color:var(--ink)}
+#hfPill{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(76px + env(safe-area-inset-bottom,0px));z-index:31;
+  display:flex;align-items:center;gap:8px;background:var(--green);color:var(--onGreen);border-radius:999px;padding:6px 6px 6px 14px;
+  font-size:13.5px;font-weight:600;box-shadow:0 6px 18px rgba(0,0,0,.25);font-variant-numeric:tabular-nums;white-space:nowrap}
+#hfPill button{width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.15);color:inherit;font-size:12px}
+body.immersive #hfPill{bottom:calc(14px + env(safe-area-inset-bottom,0px))}
+.camfoot{display:flex;justify-content:space-between;align-items:center;gap:6px;padding:0 10px 8px;font-size:11.5px;color:var(--muted)}
+.camfoot button{font-size:12px;font-weight:600;color:var(--green2);padding:4px 8px;border-radius:8px;background:var(--chip)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 @media (max-width:480px){#cam{width:140px}}
 </style>
@@ -379,7 +400,7 @@ body.full .pfoot .pn{font-family:var(--ui);font-size:15px;opacity:.6}
     <div class="wrap gut in">
       <button class="roundbtn" id="backBtn" aria-label="Back to surah list"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg></button>
       <div class="rtitle"><div class="a" id="rAr">الفاتحة</div><div class="e" id="rEn">Al-Faatiha · Juz 1</div></div>
-      <button class="roundbtn" id="camBtn" aria-label="Hand control" title="Hand control"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 11V6a2 2 0 0 0-4 0v5M14 10V4a2 2 0 0 0-4 0v6M10 10.5V6a2 2 0 0 0-4 0v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.9-6-2.4l-3.6-3.6a2 2 0 0 1 2.8-2.8L7 15"/></svg></button>
+      <button class="roundbtn" id="camBtn" aria-label="Hands-free page turning" title="Hands-free page turning"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 11V6a2 2 0 0 0-4 0v5M14 10V4a2 2 0 0 0-4 0v6M10 10.5V6a2 2 0 0 0-4 0v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.9-6-2.4l-3.6-3.6a2 2 0 0 1 2.8-2.8L7 15"/></svg></button>
       <button class="roundbtn" id="bmBtn" aria-label="Bookmark this page" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M6 3h12v18l-6-4.5L6 21z"/></svg></button>
       <button class="roundbtn" id="readSettings" aria-label="Reading settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></button>
     </div>
@@ -463,6 +484,38 @@ body.full .pfoot .pn{font-family:var(--ui);font-size:15px;opacity:.6}
   </div>
 </div>
 
+<div class="sheet" id="hfSheet" hidden role="dialog" aria-label="Hands-free page turning">
+  <div class="wrap gut">
+    <div class="grab"></div>
+    <h2>Turn pages without touching</h2>
+    <div class="hfopts">
+      <button class="hfopt" data-m="hand">
+        <span class="hfic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 11V6a2 2 0 0 0-4 0v5M14 10V4a2 2 0 0 0-4 0v6M10 10.5V6a2 2 0 0 0-4 0v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.9-6-2.4l-3.6-3.6a2 2 0 0 1 2.8-2.8L7 15"/></svg></span>
+        <span class="hft"><b>Wave your hand</b><small>Uses the front camera to see your hand. Your face is never shown on screen.</small></span>
+      </button>
+      <button class="hfopt" data-m="tilt">
+        <span class="hfic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="7" y="3" width="10" height="18" rx="2" transform="rotate(-15 12 12)"/><path d="M3 8c-1 2-1 6 0 8M21 8c1 2 1 6 0 8"/></svg></span>
+        <span class="hft"><b>Tilt the phone</b><small>Tip the phone to the side to turn the page. No camera at all.</small></span>
+      </button>
+      <button class="hfopt" data-m="auto">
+        <span class="hfic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l3 2M9 2h6"/></svg></span>
+        <span class="hft"><b>Turn pages by themselves</b><small>The next page comes after the time you choose. No camera, no sensors.</small>
+          <select id="autoSec" class="jsel" aria-label="Seconds per page">
+            <option value="30">Every 30 seconds</option><option value="45">Every 45 seconds</option><option value="60">Every 1 minute</option>
+            <option value="90">Every 1.5 minutes</option><option value="120">Every 2 minutes</option><option value="180">Every 3 minutes</option>
+          </select></span>
+      </button>
+    </div>
+    <div class="privacy">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+      <p><b>Your privacy:</b> the camera picture stays on your phone. Nothing is recorded, saved or sent anywhere. QuranMotion only looks for the shape of your hand, and the camera turns off as soon as you stop.</p>
+    </div>
+    <label class="switch"><span>Show camera picture while waving</span><input type="checkbox" id="showCam"></label>
+    <button class="ctl" id="hfStop" hidden style="width:100%;font-weight:600;margin-bottom:8px">Stop hands-free</button>
+    <button class="ctl" id="hfClose" style="width:100%">Close</button>
+  </div>
+</div>
+<div id="hfPill" hidden><span id="hfPillText"></span><button id="hfPause" aria-label="Pause">❚❚</button><button id="hfX" aria-label="Stop">✕</button></div>
 <div id="cam" hidden>
   <div class="vid">
     <video id="video" playsinline muted></video>
@@ -470,6 +523,7 @@ body.full .pfoot .pn{font-family:var(--ui);font-size:15px;opacity:.6}
     <div class="zones"><div class="z1"><span style="top:4px">UP</span></div><div class="z3"><span style="bottom:4px">DOWN</span></div></div>
   </div>
   <div class="state"><span id="gestName">Starting…</span><span class="pill" id="gestPill">loading</span></div>
+  <div class="camfoot"><span>🔒 Private, nothing recorded</span><button id="camStop">Stop</button></div>
 </div>
 <div class="sheet" id="camHelp" hidden role="dialog" aria-label="Hand control help">
   <div class="wrap gut">
@@ -615,7 +669,7 @@ $("pageBox").addEventListener("click", e=>{
   }, 300);
 });
 const openSheet = ()=>{ $("scrim").hidden=false; $("sheet").hidden=false; };
-const closeSheet = ()=>{ $("scrim").hidden=true; $("sheet").hidden=true; $("camHelp").hidden=true; const i=$("iosHelp"); if(i) i.hidden=true; };
+const closeSheet = ()=>{ $("scrim").hidden=true; $("sheet").hidden=true; $("camHelp").hidden=true; $("hfSheet").hidden=true; const i=$("iosHelp"); if(i) i.hidden=true; };
 $("homeSettings").onclick = $("readSettings").onclick = openSheet;
 $("scrim").onclick = $("closeSheet").onclick = closeSheet;
 $("camHelpOk").onclick = ()=>{ $("camHelp").hidden=true; $("scrim").hidden=true; };
@@ -1014,7 +1068,7 @@ function openReader(p){
 function showScreen(){
   const reading = location.hash === "#read";
   $("reader").hidden = !reading; $("home").hidden = reading;
-  if(!reading){ updateLastRead(); if(tab==="saved") renderList(); if(running) stopCam(); document.body.classList.remove("immersive"); }
+  if(!reading){ updateLastRead(); if(tab==="saved") renderList(); if(hfMode || running) stopHandsFree(true); document.body.classList.remove("immersive"); }
   else if(!hintShown){ hintShown=true; store.set("tapHint",true); setTimeout(()=>toast("Tap the page for full screen · pinch to zoom"),600); }
   window.scrollTo(0,0);
 }
@@ -1336,7 +1390,7 @@ document.addEventListener("keydown", e=>{
 });
 let g=null, pinch=null, pinchTarget=0, pinchRaf=0, justDragged=0;
 const tdist = t => Math.hypot(t[0].clientX-t[1].clientX, t[0].clientY-t[1].clientY);
-const overlayOpen = ()=> !$("sheet").hidden || !$("camHelp").hidden || ($("iosHelp") && !$("iosHelp").hidden);
+const overlayOpen = ()=> !$("sheet").hidden || !$("hfSheet").hidden || !$("camHelp").hidden || ($("iosHelp") && !$("iosHelp").hidden);
 // when zoomed in, a sideways swipe first pans the page; it only turns the page once you reach the edge
 function edgeAllows(sc, dx){
   if(!sc || sc.scrollWidth <= sc.clientWidth + 2) return true;
@@ -1413,7 +1467,82 @@ function toast(m){ const t=$("toast"); t.textContent=m; t.classList.add("show");
 let landmarker=null, stream=null, running=false, paused=false;
 const video=$("video"), canvas=$("overlay"), ctx=canvas.getContext("2d");
 const hist=[]; let lastSwipe=0, fistStart=0, smoothY=null, lastT=performance.now();
-$("camBtn").onclick = ()=> running ? stopCam() : startCam();
+/* ---------- hands-free: hand wave, tilt, or timed page turns ---------- */
+let hfMode = null, showCam = store.get("showCam", false), autoSec = store.get("autoSec", 60);
+$("showCam").checked = showCam; $("autoSec").value = String(autoSec);
+$("showCam").onchange = e=>{ showCam = e.target.checked; store.set("showCam", showCam); if(running) video.style.visibility = showCam ? "visible" : "hidden"; };
+$("autoSec").onclick = e=> e.stopPropagation();
+$("autoSec").onchange = e=>{ autoSec = +e.target.value; store.set("autoSec", autoSec); if(hfMode==="auto"){ autoLeft = autoSec; updatePill(); } };
+const openHF = ()=>{ $("hfStop").hidden = !hfMode; [...document.querySelectorAll(".hfopt")].forEach(b=>b.classList.toggle("on", b.dataset.m===hfMode)); $("hfSheet").hidden=false; $("scrim").hidden=false; };
+const closeHF = ()=>{ $("hfSheet").hidden=true; $("scrim").hidden=true; };
+$("camBtn").onclick = openHF;
+$("hfClose").onclick = closeHF;
+$("hfStop").onclick = ()=>{ stopHandsFree(); closeHF(); };
+$("hfX").onclick = ()=> stopHandsFree();
+$("camStop").onclick = ()=> stopHandsFree();
+document.querySelectorAll(".hfopt").forEach(b=> b.onclick = async ()=>{
+  const m = b.dataset.m; closeHF(); stopHandsFree(true);
+  if(m==="hand") await startCam();
+  else if(m==="tilt") await startTilt();
+  else startAuto();
+});
+function stopHandsFree(quiet){
+  const was = hfMode;
+  if(running) stopCam();
+  stopTilt(); stopAuto();
+  hfMode = null; $("camBtn").classList.remove("on"); $("hfPill").hidden = true;
+  if(was && !quiet) toast("Hands-free off");
+}
+function showPill(text, canPause){ $("hfPillText").textContent = text; $("hfPause").hidden = !canPause; $("hfPill").hidden = false; }
+
+// tilt
+let tiltBase = null, tiltArmed = true, tiltSeen = false, tiltCheck = 0;
+function onTilt(e){
+  const g = e.gamma; if(g == null) return;
+  tiltSeen = true;
+  if(tiltBase === null) tiltBase = g;
+  const d = g - tiltBase;
+  if(tiltArmed && Math.abs(d) > 24 && !turning && isReading() && $("sheet").hidden){
+    tiltArmed = false;
+    ((d > 0) === (swipeDir === "right")) ? next() : prev();
+  }
+  if(Math.abs(d) < 8){ tiltArmed = true; tiltBase = tiltBase*0.97 + g*0.03; }
+}
+async function startTilt(){
+  try{
+    if(typeof DeviceOrientationEvent !== "undefined" && typeof DeviceOrientationEvent.requestPermission === "function"){
+      const r = await DeviceOrientationEvent.requestPermission();
+      if(r !== "granted"){ toast("Motion access was not allowed"); return; }
+    }
+  }catch{ toast("Motion access was not allowed"); return; }
+  tiltBase = null; tiltArmed = true; tiltSeen = false;
+  window.addEventListener("deviceorientation", onTilt);
+  hfMode = "tilt"; $("camBtn").classList.add("on");
+  showPill("Tilt " + (swipeDir==="right" ? "right" : "left") + " for next page", false);
+  clearTimeout(tiltCheck);
+  tiltCheck = setTimeout(()=>{ if(hfMode==="tilt" && !tiltSeen){ stopHandsFree(true); toast("This device has no tilt sensor"); } }, 2500);
+}
+function stopTilt(){ window.removeEventListener("deviceorientation", onTilt); clearTimeout(tiltCheck); }
+
+// timed page turns
+let autoTimer = 0, autoLeft = 0, autoPaused = false, autoPage = 0;
+function updatePill(){ showPill(autoPaused ? "Paused" : "Next page in " + (autoLeft >= 60 ? Math.floor(autoLeft/60)+":"+String(autoLeft%60).padStart(2,"0") : autoLeft+"s"), true); $("hfPause").textContent = autoPaused ? "▶" : "❚❚"; }
+function startAuto(){
+  hfMode = "auto"; $("camBtn").classList.add("on");
+  autoLeft = autoSec; autoPaused = false; autoPage = page; updatePill();
+  clearInterval(autoTimer);
+  autoTimer = setInterval(()=>{
+    if(!isReading()) return;
+    if(page !== autoPage){ autoPage = page; autoLeft = autoSec; }      // you turned a page yourself: start the count again
+    if(autoPaused){ updatePill(); return; }
+    autoLeft--;
+    if(autoLeft <= 0){ autoLeft = autoSec; if(page < 604) next(); else stopHandsFree(); }
+    updatePill();
+  }, 1000);
+  toast("Pages will turn every " + (autoSec >= 60 ? (autoSec/60)+" min" : autoSec+" s"));
+}
+function stopAuto(){ clearInterval(autoTimer); autoPaused = false; }
+$("hfPause").onclick = ()=>{ autoPaused = !autoPaused; updatePill(); };
 
 async function startCam(){
   $("cam").hidden=false; setState("Loading hand tracker…","loading"); $("camBtn").classList.add("on");
@@ -1427,9 +1556,9 @@ async function startCam(){
       catch{ landmarker = await v.HandLandmarker.createFromOptions(files, opts("CPU")); }
     }
     stream = await navigator.mediaDevices.getUserMedia({ video:{ facingMode:"user", width:{ideal:640}, height:{ideal:480} }, audio:false });
-    video.srcObject=stream; await video.play(); video.style.visibility="visible";
+    video.srcObject=stream; await video.play(); video.style.visibility = showCam ? "visible" : "hidden";
     canvas.width=video.videoWidth; canvas.height=video.videoHeight;
-    running=true; paused=false; toast("✋ Hand control on"); requestAnimationFrame(loop);
+    running=true; paused=false; hfMode="hand"; toast("✋ Hand control on"); requestAnimationFrame(loop);
   }catch(err){
     running=false; $("camBtn").classList.remove("on"); $("cam").hidden=true;
     if(stream){ stream.getTracks().forEach(t=>t.stop()); stream=null; }
@@ -1444,7 +1573,7 @@ async function startCam(){
   }
 }
 function stopCam(){
-  running=false; if(stream) stream.getTracks().forEach(t=>t.stop()); stream=null;
+  running=false; if(stream) stream.getTracks().forEach(t=>t.stop()); stream=null; video.srcObject=null;
   $("cam").hidden=true; $("camBtn").classList.remove("on");
 }
 function setState(n, mode){
@@ -1461,6 +1590,7 @@ function loop(){
   let res=null;
   if(video.readyState>=2){ try{ res=landmarker.detectForVideo(video,now); }catch{} }
   ctx.clearRect(0,0,canvas.width,canvas.height);
+  if(!showCam){ ctx.fillStyle = "#0E1A17"; ctx.fillRect(0,0,canvas.width,canvas.height); }
   const lm = res && res.landmarks && res.landmarks[0];
   if(!lm){ hist.length=0; fistStart=0; smoothY=null;
     setState(paused?"Paused · fist to resume":"Show your hand", paused?"paused":"active"); requestAnimationFrame(loop); return; }
