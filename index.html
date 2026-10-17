@@ -27,11 +27,12 @@
   --body:"Literata",Georgia,serif;
   --ui:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;
   --arSize:30px;
+  --greenText:#11735E;
   color-scheme:light;
 }
 @media (prefers-color-scheme:dark){:root{
   --bg:#0A1311; --card:#111D1A; --page:#121C19; --ink:#E5EFEB; --muted:#93A8A2; --line:#22342F;
-  --green:#0C3F35; --green2:#12584A; --gold:#D8B464; --goldsoft:#2C2717; --chip:#182A26; --onGreen:#EAF5F1; color-scheme:dark;}}
+  --green:#0C3F35; --green2:#12584A; --greenText:#6FCDB4; --gold:#D8B464; --goldsoft:#2C2717; --chip:#182A26; --onGreen:#EAF5F1; color-scheme:dark;}}
 [hidden]{display:none!important}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--ui);font-size:15px}
@@ -387,6 +388,36 @@ body.immersive:not(:has(#reader[hidden])) #homeFloat{display:grid}
 .jl2 b{font-size:14px;color:var(--green2);letter-spacing:.02em}
 .jl2 small{font-size:12px;color:var(--muted)}
 .jar{font-family:var(--arUi);font-size:18px;color:var(--gold);white-space:nowrap}
+
+/* juz cards: a different take on the surah index */
+.jsec{margin:14px 0 0}
+.jcard{position:relative;overflow:hidden;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:4px 6px 6px}
+.jcard::before{content:attr(data-n);position:absolute;left:-6px;top:-30px;font-family:var(--arUi);font-size:120px;line-height:1;color:var(--gold);opacity:.08;pointer-events:none}
+.jcard.here{border-color:var(--gold);box-shadow:0 0 0 3px var(--goldsoft)}
+.jhead{position:relative;width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 10px 10px;text-align:left;color:var(--ink)}
+.jtitle{display:flex;flex-direction:column;gap:1px;min-width:0}
+.jnum{font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--green2);font-weight:700}
+.jname{font-family:var(--arUi);font-size:22px;color:var(--gold);line-height:1.3;direction:rtl;text-align:left}
+.jside{display:flex;align-items:center;gap:8px;flex:none}
+.jpage{font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums;border:1px solid var(--line);border-radius:999px;padding:3px 9px}
+.herechip{font-size:11.5px;font-weight:700;color:#1d1606;background:var(--gold);border-radius:999px;padding:3px 9px}
+.jcont{position:relative;display:flex;align-items:center;gap:8px;width:100%;text-align:left;font-size:13px;color:var(--muted);padding:6px 10px 10px}
+.jcont .dot{width:6px;height:6px;border-radius:50%;background:var(--gold);flex:none}
+.jcont:hover{color:var(--ink)}
+.srow{position:relative;border-bottom:0;border-top:1px dashed var(--line);border-radius:0;padding:12px 6px}
+.srow:hover{background:var(--chip);border-radius:12px}
+.srow .sub{font-size:12.5px;color:var(--muted);margin-top:1px}
+.srow .meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:4px;font-size:12px;font-variant-numeric:tabular-nums}
+.rev{display:inline-flex;align-items:center;gap:4px;font-weight:600;font-size:11px;padding:2px 7px 2px 5px;border-radius:999px;background:var(--chip);color:var(--green2)}
+.rev::before{content:"";width:10px;height:10px;background:currentColor}
+.rev.mk::before{clip-path:polygon(0 25%,50% 0,100% 25%,100% 100%,0 100%)}
+.rev.md::before{clip-path:polygon(50% 0,62% 18%,80% 30%,92% 50%,100% 100%,0 100%,8% 50%,20% 30%,38% 18%)}
+.rev.md{color:#8A6A22;background:var(--goldsoft)}
+#list > li:not(.jsec) .srow{border-top:0;border-bottom:1px solid var(--line);border-radius:0}
+
+.jnum,.star,.item .arn,.rev.mk,.homebtn,.pbtn,.zbtn{color:var(--greenText)}
+.star{color:var(--greenText)}
+.jcard::before{left:auto;right:6px;top:auto;bottom:-46px;font-size:130px}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 @media (max-width:480px){#cam{width:140px}}
 </style>
@@ -902,28 +933,47 @@ function renderList(){
       (s.englishNameTranslation||"").toLowerCase().includes(q) || s.name.includes(q));
     if(!items.length){ if(!list.children.length) list.innerHTML = '<li class="empty">Nothing matches. Try a surah name, 2:255, page 50 or juz 5.</li>'; return; }
     if(list.children.length) list.append(el("li","divider","Surahs"));
-    // with no search, split the list into juz sections, like a printed index
-    const showJuz = !q;
-    let nextJuz = 0;
-    const juzHead = j=>{
-      const ref = JUZ_REFS[j], S = SURAHS[ref.surah-1], p = JUZ_PAGES[j];
-      const li = el("li","juzli"); const b = el("button","juzhead");
-      const left = el("span","jl2"); left.append(el("b",null,"Juz "+(j+1)), el("small",null, ref.ayah===1 ? "Page "+p : "Starts "+S.englishName+" "+ref.surah+":"+ref.ayah+" · Page "+p));
-      b.append(left, el("span","jar","الجزء "+arNum(j+1)));
-      b.onclick = ()=> ref.ayah===1 ? openReader(p) : openAyah(ref.surah, ref.ayah);
-      li.append(b); list.append(li);
-    };
-    items.forEach(s=>{
-      if(showJuz) while(nextJuz < 30 && cmpRef(JUZ_REFS[nextJuz], {surah:s.number, ayah:1}) <= 0){ juzHead(nextJuz); nextJuz++; }
-      const li = el("li"); const b = el("button","item");
-      const st = el("span","star",s.number);
+    // with no search: each juz is its own card holding the surahs that begin in it
+    const surahRow = (s, compact)=>{
+      const b = el("button","item srow");
       const info = el("span","info");
-      info.append(el("div","en",s.englishName), el("div","meta",`${s.englishNameTranslation} · ${s.revelationType==="Meccan"?"Makki":"Madani"} · ${s.numberOfAyahs} ayahs`));
-      b.append(st, info, el("span","arn",s.name.replace(/^سُورَةُ\s*/,"")));
+      const meta = el("div","meta");
+      const mk = s.revelationType==="Meccan";
+      meta.append(el("span","rev "+(mk?"mk":"md"), mk?"Makki":"Madani"), document.createTextNode(` ${s.numberOfAyahs} ayahs · p. ${s.page}`));
+      info.append(el("div","en",s.englishName), el("div","sub",s.englishNameTranslation), meta);
+      b.append(el("span","star",s.number), info, el("span","arn",s.name.replace(/^سُورَةُ\s*/,"")));
       b.onclick = ()=>openSurah(s);
-      li.append(b); list.append(li);
-    });
-    if(showJuz) while(nextJuz < 30){ juzHead(nextJuz); nextJuz++; }
+      return b;
+    };
+    if(q){
+      items.forEach(s=>{ const li = el("li"); li.append(surahRow(s)); list.append(li); });
+    }else{
+      const here = juzOfPage(page) - 1;
+      for(let j=0;j<30;j++){
+        const ref = JUZ_REFS[j], S = SURAHS[ref.surah-1], p = JUZ_PAGES[j];
+        const endRef = j<29 ? JUZ_REFS[j+1] : {surah:115, ayah:1};
+        const inJuz = items.filter(s=> cmpRef(ref,{surah:s.number,ayah:1})<=0 && cmpRef({surah:s.number,ayah:1},endRef)<0);
+        const li = el("li","jsec"); const card = el("div","jcard"+(j===here?" here":""));
+        card.dataset.n = arNum(j+1);
+        const head = el("button","jhead");
+        const t = el("span","jtitle");
+        t.append(el("span","jnum","Juz "+(j+1)), el("span","jname","الجزء "+JUZ_AR[j]));
+        const side = el("span","jside");
+        if(j===here) side.append(el("span","herechip","You're here"));
+        side.append(el("span","jpage","p. "+p));
+        head.append(t, side);
+        head.onclick = ()=> ref.ayah===1 ? openReader(p) : openAyah(ref.surah, ref.ayah);
+        card.append(head);
+        if(ref.ayah!==1){
+          const c = el("button","jcont");
+          c.append(el("span","dot"), document.createTextNode(`Continues ${S.englishName} from ayah ${ref.ayah}`));
+          c.onclick = ()=> openAyah(ref.surah, ref.ayah);
+          card.append(c);
+        }
+        inJuz.forEach(s=> card.append(surahRow(s)));
+        li.append(card); list.append(li);
+      }
+    }
   }else{
     const jq = q.replace(/^(j|juz)\s*/,"");
     JUZ_PAGES.forEach((jp,i)=>{
@@ -945,6 +995,7 @@ function renderList(){
 let bookmarks = store.get("bookmarks", []);   // [{p, t}]
 let recent = store.get("recent", []);         // [{p, t}] newest first
 const isBookmarked = p => bookmarks.some(b=>b.p===p);
+const JUZ_AR = ["الأول","الثاني","الثالث","الرابع","الخامس","السادس","السابع","الثامن","التاسع","العاشر","الحادي عشر","الثاني عشر","الثالث عشر","الرابع عشر","الخامس عشر","السادس عشر","السابع عشر","الثامن عشر","التاسع عشر","العشرون","الحادي والعشرون","الثاني والعشرون","الثالث والعشرون","الرابع والعشرون","الخامس والعشرون","السادس والعشرون","السابع والعشرون","الثامن والعشرون","التاسع والعشرون","الثلاثون"];
 const juzOfPage = p => { let j=1; JUZ_PAGES.forEach((jp,i)=>{ if(jp<=p) j=i+1; }); return j; };
 function timeAgo(t){
   const m = Math.round((Date.now()-t)/60000);
