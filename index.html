@@ -351,6 +351,16 @@ body.immersive #hfPill{bottom:calc(14px + env(safe-area-inset-bottom,0px))}
 .hfopt::after{content:"";position:absolute;right:12px;top:12px;width:22px;height:22px;border-radius:50%;border:2px solid var(--line);background:var(--card)}
 .hfopt.on::after{border-color:var(--green2);background:var(--green2) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3'%3E%3Cpath d='M5 12l5 5 9-10'/%3E%3C/svg%3E") center/14px no-repeat}
 .hft{padding-right:28px}
+
+/* home buttons */
+.homebtn{display:flex;flex-direction:column;align-items:center;gap:1px;padding:4px 8px;border-radius:10px;color:var(--green2);font-size:10.5px;font-weight:600}
+.homebtn svg{width:20px;height:20px}
+.homebtn:hover{background:var(--chip)}
+#homeFloat{display:none;position:fixed;z-index:32;left:max(10px,env(safe-area-inset-left,0px));top:calc(10px + env(safe-area-inset-top,0px));
+  width:42px;height:42px;border-radius:50%;background:rgba(11,85,70,.82);color:#F5FBF8;place-items:center;box-shadow:0 3px 10px rgba(0,0,0,.25)}
+#homeFloat svg{width:20px;height:20px}
+body.immersive:not(:has(#reader[hidden])) #homeFloat{display:grid}
+@media (max-width:380px){.homebtn span{display:none}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 @media (max-width:480px){#cam{width:140px}}
 </style>
@@ -404,7 +414,7 @@ body.immersive #hfPill{bottom:calc(14px + env(safe-area-inset-bottom,0px))}
 <section id="reader" class="reader" hidden>
   <div class="rbar">
     <div class="wrap gut in">
-      <button class="roundbtn" id="backBtn" aria-label="Back to surah list"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg></button>
+      <button class="roundbtn" id="backBtn" aria-label="Home" title="Home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linejoin="round" stroke-linecap="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h5v-6h4v6h5V10"/></svg></button>
       <div class="rtitle"><div class="a" id="rAr">الفاتحة</div><div class="e" id="rEn">Al-Faatiha · Juz 1</div></div>
       <button class="roundbtn" id="camBtn" aria-label="Hands-free page turning" title="Hands-free page turning"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 11V6a2 2 0 0 0-4 0v5M14 10V4a2 2 0 0 0-4 0v6M10 10.5V6a2 2 0 0 0-4 0v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.9-6-2.4l-3.6-3.6a2 2 0 0 1 2.8-2.8L7 15"/></svg></button>
       <button class="roundbtn" id="bmBtn" aria-label="Bookmark this page" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M6 3h12v18l-6-4.5L6 21z"/></svg></button>
@@ -435,6 +445,7 @@ body.immersive #hfPill{bottom:calc(14px + env(safe-area-inset-bottom,0px))}
   <div class="pbar">
     <div class="wrap gut in">
       <button class="pbtn" id="nextBtn" aria-label="Next page">‹ Next</button>
+      <button class="homebtn" id="homeBtn2" aria-label="Home" title="Home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linejoin="round" stroke-linecap="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h5v-6h4v6h5V10"/></svg><span>Home</span></button>
       <div class="zoom">
         <button class="zbtn" id="zOut" aria-label="Zoom out">−</button>
         <div class="pnum"><b id="pNum">1</b><span>/604</span><small id="zPct">100%</small></div>
@@ -528,6 +539,7 @@ body.immersive #hfPill{bottom:calc(14px + env(safe-area-inset-bottom,0px))}
     <button class="ctl" id="hfClose" style="width:100%">Close</button>
   </div>
 </div>
+<button id="homeFloat" aria-label="Home" title="Home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linejoin="round" stroke-linecap="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h5v-6h4v6h5V10"/></svg></button>
 <div id="hfPill" hidden><span id="hfPillText"></span><button id="hfPause" aria-label="Pause">❚❚</button><button id="hfX" aria-label="Stop">✕</button></div>
 <div id="cam" hidden>
   <div class="vid">
@@ -1088,7 +1100,13 @@ function showScreen(){
   window.scrollTo(0,0);
 }
 window.addEventListener("hashchange", ()=>{ showScreen(); if(isReading()) render(page); });
-$("backBtn").onclick = ()=>{ if(history.length>1 && location.hash==="#read") history.back(); else { location.hash=""; } };
+// Home: back to the surah list, without leaving the app
+function goHome(){
+  if(location.hash === "#read"){ history.replaceState(null, "", location.pathname + location.search); showScreen(); }
+}
+$("backBtn").onclick = goHome;
+$("homeBtn2").onclick = goHome;
+$("homeFloat").onclick = goHome;
 
 /* ---------- page rendering ---------- */
 const cache = new Map();
