@@ -1636,7 +1636,10 @@ function drawHand(lm){
 
 /* ---------- install as an app ---------- */
 if("serviceWorker" in navigator && location.protocol.startsWith("http")){
-  navigator.serviceWorker.register("sw.js").catch(()=>{});
+  navigator.serviceWorker.register("sw.js").then(reg=>{ reg.update().catch(()=>{}); }).catch(()=>{});
+  // when a new version has installed, reload once so the update shows straight away
+  let reloaded = false;
+  navigator.serviceWorker.addEventListener("controllerchange", ()=>{ if(reloaded) return; reloaded = true; if(!document.hidden) location.reload(); });
 }
 const standalone = matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
 const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform==="MacIntel" && navigator.maxTouchPoints>1);

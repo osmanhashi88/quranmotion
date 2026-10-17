@@ -2,7 +2,7 @@
 // The app itself (with the full Arabic and English Quran inside) is cached on install.
 // Fonts, the hand tracking model and extra translations are cached the first time they load,
 // so after one online visit they work offline too.
-const VERSION = "qh-v13";
+const VERSION = "qh-v14";
 const SHELL = [
   "./",
   "./index.html",
@@ -39,6 +39,17 @@ self.addEventListener("fetch", event => {
         caches.open(VERSION).then(c => c.put(req, copy));
         return res;
       }).catch(() => caches.match(req))
+    );
+    return;
+  }
+
+  // The app page itself: get the newest version when online, use the saved copy when offline.
+  if (req.mode === "navigate" || (url.origin === self.location.origin && /\/(index\.html)?$/.test(url.pathname))) {
+    event.respondWith(
+      fetch(req).then(res => {
+        if (res && res.ok) { const copy = res.clone(); caches.open(VERSION).then(c => c.put("./index.html", copy)); }
+        return res;
+      }).catch(() => caches.match("./index.html").then(r => r || caches.match(req)))
     );
     return;
   }
