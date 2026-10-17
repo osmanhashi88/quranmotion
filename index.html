@@ -419,6 +419,12 @@ body.immersive:not(:has(#reader[hidden])) #homeFloat{display:grid}
 .jnum,.star,.item .arn,.rev.mk,.homebtn,.pbtn,.zbtn{color:var(--greenText)}
 .star{color:var(--greenText)}
 .jcard::before{left:auto;right:6px;top:auto;bottom:-46px;font-size:130px}
+.plink{color:var(--greenText);display:inline-block;margin-top:8px}
+
+/* small screens: keep the reader dropdowns readable, keep the floating home clear of the surah name */
+.rjump .jrow{grid-template-columns:minmax(0,1.55fr) minmax(0,1fr) minmax(0,1fr);gap:6px}
+.rjump .jsel{font-size:13.5px;padding:8px 4px}
+body.immersive #reader .phead{padding-left:50px}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 @media (max-width:480px){#cam{width:140px}}
 </style>
@@ -464,7 +470,7 @@ body.immersive:not(:has(#reader[hidden])) #homeFloat{display:grid}
     <label class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
       <input id="q" type="search" placeholder="Surah name, 2:255, page 50, juz 5" aria-label="Search by surah, ayah, page or juz" enterkeyhint="go"></label>
     <ul class="list" id="list"><li class="empty">Loading surahs…</li></ul>
-    <div class="foot">Arabic and English (Saheeh International) work offline. Other languages load from alquran.cloud when online.</div>
+    <div class="foot">Arabic and English (Saheeh International) work offline. Other languages load from alquran.cloud when online.<br><a href="privacy.html" class="plink">Privacy policy</a></div>
   </div>
 </section>
 
