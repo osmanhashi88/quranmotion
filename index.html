@@ -376,6 +376,17 @@ body.immersive:not(:has(#reader[hidden])) #homeFloat{display:grid}
   #hfPill{bottom:calc(52px + env(safe-area-inset-bottom,0px))}
   .sheet{max-height:92vh}
 }
+
+/* juz sections in the surah list */
+.juzli{margin-top:14px}
+.juzli:first-child{margin-top:4px}
+.juzhead{width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;text-align:left;
+  background:var(--chip);border-radius:10px;padding:9px 12px;color:var(--ink)}
+.juzhead:hover{background:var(--goldsoft)}
+.jl2{display:flex;flex-direction:column;min-width:0}
+.jl2 b{font-size:14px;color:var(--green2);letter-spacing:.02em}
+.jl2 small{font-size:12px;color:var(--muted)}
+.jar{font-family:var(--arUi);font-size:18px;color:var(--gold);white-space:nowrap}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 @media (max-width:480px){#cam{width:140px}}
 </style>
@@ -891,7 +902,19 @@ function renderList(){
       (s.englishNameTranslation||"").toLowerCase().includes(q) || s.name.includes(q));
     if(!items.length){ if(!list.children.length) list.innerHTML = '<li class="empty">Nothing matches. Try a surah name, 2:255, page 50 or juz 5.</li>'; return; }
     if(list.children.length) list.append(el("li","divider","Surahs"));
+    // with no search, split the list into juz sections, like a printed index
+    const showJuz = !q;
+    let nextJuz = 0;
+    const juzHead = j=>{
+      const ref = JUZ_REFS[j], S = SURAHS[ref.surah-1], p = JUZ_PAGES[j];
+      const li = el("li","juzli"); const b = el("button","juzhead");
+      const left = el("span","jl2"); left.append(el("b",null,"Juz "+(j+1)), el("small",null, ref.ayah===1 ? "Page "+p : "Starts "+S.englishName+" "+ref.surah+":"+ref.ayah+" · Page "+p));
+      b.append(left, el("span","jar","الجزء "+arNum(j+1)));
+      b.onclick = ()=> ref.ayah===1 ? openReader(p) : openAyah(ref.surah, ref.ayah);
+      li.append(b); list.append(li);
+    };
     items.forEach(s=>{
+      if(showJuz) while(nextJuz < 30 && cmpRef(JUZ_REFS[nextJuz], {surah:s.number, ayah:1}) <= 0){ juzHead(nextJuz); nextJuz++; }
       const li = el("li"); const b = el("button","item");
       const st = el("span","star",s.number);
       const info = el("span","info");
@@ -900,6 +923,7 @@ function renderList(){
       b.onclick = ()=>openSurah(s);
       li.append(b); list.append(li);
     });
+    if(showJuz) while(nextJuz < 30){ juzHead(nextJuz); nextJuz++; }
   }else{
     const jq = q.replace(/^(j|juz)\s*/,"");
     JUZ_PAGES.forEach((jp,i)=>{
