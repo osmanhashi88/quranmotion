@@ -2186,7 +2186,9 @@ function readMove(kind){
     if(page < 604){ turn(true); return "Next page"; } return "";
   }
   if(se.scrollTop > 6){ window.scrollBy({top: -step, behavior: "smooth"}); return "Scrolling up"; }
-  if(page > 1){ turn(false); return "Previous page"; } return "";
+  // at the top: go back a page and land at its bottom, so reading carries on upwards
+  if(page > 1){ turn(false).then(()=>{ const e = document.scrollingElement || document.documentElement; if(e.scrollHeight > innerHeight + 6) window.scrollTo({top: e.scrollHeight}); }); return "Previous page"; }
+  return "";
 }
 function swipeIn(minX, minY, within, allowY){
   // the biggest move between any earlier point in the last moment and now; one direction must clearly lead
@@ -2249,8 +2251,8 @@ function handStep(res, now, dt){
 const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
 let voiceOn = store.get("voiceOn", false), rec = null, recSession = 0, voiceLastAct = 0, voiceDone = new Set(), voiceRetry = 0, voiceRestartT = 0;
 const VOICE_CMDS = [
-  [/scroll(ing)? down|go down|down page/, "down"],
-  [/scroll(ing)? up|go up|up page/, "up"],
+  [/\b(scroll|scrolls|scrolled|scrolling|school|skull|scrawl|scroll|roll|rolling|squirrel|go|move|page)\s?(down|done|dawn|town|don)\b|\bdown\b/, "down"],
+  [/\b(scroll|scrolls|scrolled|scrolling|school|skull|scrawl|roll|rolling|squirrel|go|move|page)\s?(up|op|app|upp|uh)\b|\bscroll\s?up|\bup\b/, "up"],
   [/\b(back|bak|pack|bag|black|bad|buck|beck)\s?(page|paige|pace|paid|pays|pages)|\b(go|going|turn|page)\s?back|\bback|\bprevious|\bprev\b|\bbefore\b|\blast page|\breturn/, "prev"],
   [/\b(next|nest|necks|nex|forward|neck page|text page)/, "next"],
 ];
