@@ -731,7 +731,7 @@ body.full:not(:has(#reader[hidden])) #micFloat{display:grid}
     <h2>Turn pages with your hand</h2>
     <ul class="hflist">
       <li><span class="hfic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 11V6a2 2 0 0 0-4 0v5M14 10V4a2 2 0 0 0-4 0v6M10 10.5V6a2 2 0 0 0-4 0v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.9-6-2.4l-3.6-3.6a2 2 0 0 1 2.8-2.8L7 15"/></svg></span><span><b>Swipe left or right</b> to turn the page. <b>Swipe up</b> to read on, <b>swipe down</b> to go back</span></li>
-      <li><span class="hfic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/></svg></span><span>Or tap the <b>microphone</b> and say <b>next</b>, <b>back</b>, <b>up</b> or <b>down</b></span></li>
+      <li><span class="hfic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/></svg></span><span>Or tap the <b>microphone</b> and say <b>next</b>, <b>back</b>, <b>up</b> or <b>down</b>. To jump, say <b>surah 36</b> or <b>surah Yaseen</b>, <b>page 250</b>, <b>juz 30</b> or <b>random page</b></span></li>
       <li><span class="hfic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></span><span>Or <b>hold your hand</b> at one side for a moment: right for the next page, left to go back</span></li>
       <li><span class="hfic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span><span>Keep your hand about an arm's length from the phone, in good light</span></li>
     </ul>
@@ -2287,6 +2287,59 @@ const VOICE_CMDS = [
   [/\b(back|bak|pack|bag|black|bad|buck|beck)\s?(page|paige|pace|paid|pays|pages)|\b(go|going|turn|page)\s?back|\bback|\bprevious|\bprev\b|\bbefore\b|\blast page|\breturn/, "prev"],
   [/\b(next|nest|necks|nex|forward|neck page|text page)/, "next"],
 ];
+// ---- going somewhere by voice: "surah 36", "surah Yaseen", "page 250", "juz 30" ----
+const NUMW = {zero:0,one:1,won:1,two:2,too:2,three:3,tree:3,four:4,five:5,six:6,seven:7,eight:8,nine:9,ten:10,eleven:11,twelve:12,thirteen:13,fourteen:14,fifteen:15,
+  sixteen:16,seventeen:17,eighteen:18,nineteen:19,twenty:20,thirty:30,forty:40,fourty:40,fifty:50,sixty:60,seventy:70,eighty:80,ninety:90};
+function parseNum(w){
+  if(!w.length) return null;
+  if(/^\d+$/.test(w[0])) return +w[0];
+  let cur = 0, any = false;
+  for(const x of w){
+    if(x === "and" && any) continue;
+    if(x === "hundred" && any){ cur = (cur || 1) * 100; continue; }
+    if(x === "a" && !any) continue;
+    if(x in NUMW){ cur += NUMW[x]; any = true; continue; }
+    break;
+  }
+  return any ? cur : null;
+}
+const normName = t => t.toLowerCase().replace(/[^a-z]/g,"").replace(/^(al|an|ar|as|at|ad|az|ash|adh|el)(?=[a-z]{3})/,"")
+  .replace(/ee/g,"i").replace(/oo/g,"u").replace(/aa/g,"a").replace(/y/g,"i").replace(/(.)\1+/g,"$1").replace(/h$/,"");
+let SURAH_KEYS = null;
+function lev(a,b){ const d=[...Array(b.length+1).keys()]; for(let i=1;i<=a.length;i++){ let p=d[0]; d[0]=i; for(let j=1;j<=b.length;j++){ const t=d[j]; d[j]=Math.min(d[j]+1, d[j-1]+1, p+(a[i-1]===b[j-1]?0:1)); p=t; } } return d[b.length]; }
+function surahByName(words){
+  SURAH_KEYS = SURAH_KEYS || SURAHS.map(S=>[normName(S.englishName), normName(S.englishNameTranslation||"")]);
+  let best = null;
+  for(let n = Math.min(3, words.length); n >= 1; n--){
+    const k = normName(words.slice(0,n).join("")); if(k.length < 3) continue;
+    SURAH_KEYS.forEach(([a,b],i)=>{
+      for(const key of [a,b]){ if(!key) continue; const d = lev(k,key), lim = key.length <= 4 ? 1 : 2;
+        if(d <= lim && (!best || d < best.d)) best = {i, d}; }
+    });
+    if(best) return best.i + 1;
+  }
+  return null;
+}
+const NAV_KEYS = {surah:"s",sura:"s",surat:"s",soorah:"s",sorah:"s",sora:"s",surra:"s",soora:"s",chapter:"s",page:"p",paige:"p",juz:"j",jus:"j",juice:"j",joes:"j",jews:"j",jazz:"j",juze:"j",para:"j",parah:"j"};
+function navsIn(txt){
+  const w = txt.toLowerCase().replace(/(\d+)/g," $1 ").replace(/[^a-z0-9 ]/g," ").split(/\s+/).filter(Boolean), out = [];
+  for(let i = 0; i < w.length; i++){
+    if(w[i] === "random" || w[i] === "randomly" || w[i] === "surprise"){ out.push({kind:"r", n: 1 + Math.floor(Math.random()*604)}); continue; }
+    const kind = NAV_KEYS[w[i]]; if(!kind) continue;
+    const rest = w.slice(i+1, i+7).filter(x=>x!=="number"&&x!=="no");
+    let n = parseNum(rest);
+    if(kind === "s"){ if(n == null) n = surahByName(rest); if(n >= 1 && n <= 114) out.push({kind, n}); }
+    else if(kind === "p"){ if(n >= 1 && n <= 604) out.push({kind, n}); }
+    else if(n >= 1 && n <= 30) out.push({kind, n});
+  }
+  return out;
+}
+function voiceGo(g){
+  if(g.kind === "s"){ const S = SURAHS[g.n-1]; openAyah(g.n, 1); return "Surah " + S.englishName + " (" + g.n + ")"; }
+  if(g.kind === "p" || g.kind === "r"){ openReader(g.n); return (g.kind === "r" ? "Random page · " : "Page ") + g.n; }
+  const r = JUZ_REFS[g.n-1]; openAyah(r.surah, r.ayah); return "Juz " + g.n;
+}
+let navDone = new Map();
 let heardT = 0;
 function showHeard(txt){
   const h = $("micHeard"); if(!h) return;
@@ -2327,6 +2380,16 @@ function startVoice(fromTap){
       const key = sid + ":" + i, res = e.results[i];
       const txt = res[0].transcript;
       showHeard(txt);
+      // places ("surah 36", "page 250", "juz 30") only once the phone has finished the sentence, so "surah 3…" never jumps early
+      if(res.isFinal){
+        const navs = navsIn(txt), nd = navDone.get(key) || 0;
+        if(navs.length > nd){
+          navDone.set(key, navs.length);
+          if(!turning && !flip && !overlayOpen()){ voiceLastAct = performance.now(); toast(voiceGo(navs[navs.length-1])); }
+          voiceDone.set(key, commandsIn(txt).length);
+          continue;
+        }
+      }
       const cmds = commandsIn(txt);
       const done = voiceDone.get(key) || 0;
       if(cmds.length <= done) continue;
@@ -2361,7 +2424,7 @@ function startVoice(fromTap){
     }
   };
   try{ r.start(); syncMic("wait"); }catch{ rec = null; syncMic(); }
-  if(fromTap && !store.get("voiceTip", false)){ store.set("voiceTip", true); setTimeout(()=>toast("Say: next · back · up · down"), 600); }
+  if(fromTap && !store.get("voiceTip", false)){ store.set("voiceTip", true); setTimeout(()=>toast("Say: next · back · up · down · surah 36 · page 250 · juz 30"), 600); }
 }
 function pauseVoice(){
   clearTimeout(voiceRestartT);
