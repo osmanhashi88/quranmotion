@@ -477,7 +477,7 @@ body[data-rt=night]{--pbg:#0E0E0C;--pbg2:#1B1914;--pink:#ECE6D6;--pframe:#6E5D38
   -webkit-mask-position:top left, top right, bottom left, bottom right;mask-position:top left, top right, bottom left, bottom right;-webkit-mask-size:30px 30px;mask-size:30px 30px;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat}
 .mline .mark{color:var(--pmark)}
 /* surah title cartouche */
-.mline.tl{line-height:1.85}
+.mline.tl{line-height:var(--mlh,1.85)}
 .mtitle{position:relative;width:100%;height:1.62em;border:0!important;box-shadow:none!important;background:none!important;display:flex;align-items:center;
   justify-content:space-between;padding:0 2.2em;line-height:1;font-size:1em;direction:rtl;border-radius:0}
 .mtitle svg.cart{position:absolute;inset:0;width:100%;height:100%;overflow:visible;z-index:-1}
@@ -511,6 +511,7 @@ body.full .pfoot .pn{font-family:var(--ui);font-size:12.5px;opacity:1;color:var(
 #camFloat{width:36px;height:36px;top:calc(3px + env(safe-area-inset-top,0px))}
 body.full #reader .frame-in{padding:0 8px 2px}
 body.full #reader main{padding-bottom:calc(2px + env(safe-area-inset-bottom,0px))!important}
+.mpage:not(.opening) .mline{line-height:var(--mlh,1.85)}
 </style>
 </head>
 <body>
@@ -1399,12 +1400,12 @@ async function fitMushaf(){
   const k = maxW/100, LH = opening ? 2.35 : 1.85;
   const lines = opening ? pageEl.querySelectorAll(".mline").length + 0.4 : 15;
   const byWidth = 0.97*W / (k + 2*PADX*0.97);
-  const byHeight = availH / (lines*LH + 2*PADY + 0.25);
+  // fill the full width: lines may sit a little closer (down to 1.55) before the text gets smaller
+  const LHmin = opening ? LH : 1.55;
+  const byHeight = availH / (lines*LHmin + 2*PADY + 0.25);
   const fontPx = (zoom > 1.01 || !portrait) ? Math.min(60*zoom, byWidth) : Math.min(60, byWidth, byHeight);
   pageEl.style.fontSize = fontPx + "px";
-  if(zoom <= 1.01 && portrait && byHeight < byWidth){
-    pageEl.style.width = Math.min(avail, fontPx * (k/0.97 + 2*PADX)) + "px";
-  }
+  pageEl.style.setProperty("--mlh", opening ? LH : Math.max(LHmin, Math.min(LH, portrait && zoom<=1.01 ? (availH/fontPx - 2*PADY - 0.25)/lines : LH)));
   pageEl.style.minHeight = (zoom > 1.01 || !portrait) ? "" : Math.max(0, availH) + "px";
   pageEl.querySelectorAll(".mtitle").forEach(drawCartouche);
 }
