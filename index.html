@@ -716,7 +716,7 @@ body.full #reader .mushaf.bookmarked::after{display:none}
     <div class="grab"></div>
     <h2>Turn pages with your hand</h2>
     <ul class="hflist">
-      <li><span class="hfic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 11V6a2 2 0 0 0-4 0v5M14 10V4a2 2 0 0 0-4 0v6M10 10.5V6a2 2 0 0 0-4 0v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.9-6-2.4l-3.6-3.6a2 2 0 0 1 2.8-2.8L7 15"/></svg></span><span><b>Swipe your hand</b> across the camera to turn the page</span></li>
+      <li><span class="hfic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 11V6a2 2 0 0 0-4 0v5M14 10V4a2 2 0 0 0-4 0v6M10 10.5V6a2 2 0 0 0-4 0v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.9-6-2.4l-3.6-3.6a2 2 0 0 1 2.8-2.8L7 15"/></svg></span><span><b>Swipe left or right</b> to turn the page. <b>Swipe up</b> to read on, <b>swipe down</b> to go back</span></li>
       <li><span class="hfic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></span><span>Or <b>hold your hand</b> at one side for a moment: right for the next page, left to go back</span></li>
       <li><span class="hfic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span><span>Keep your hand about an arm's length from the phone, in good light</span></li>
     </ul>
@@ -1877,7 +1877,7 @@ async function startGestures(quiet){
   syncHF();
   if(!gesturesLive()){ gesturesOn = false; store.set("gesturesOn2", false); return; }
   if(!quiet) toast("Hand gestures on");
-  else if(!store.get("gestOnTip", false)){ store.set("gestOnTip", true); setTimeout(()=>toast("Hand gestures are on · swipe or hold your hand at a side"), 900); }
+  else if(!store.get("gestOnTip", false)){ store.set("gestOnTip", true); setTimeout(()=>toast("Hand gestures on · swipe left, right, up or down"), 900); }
 }
 function stopGestures(){
   stopCam(); stopEyes(); stopTilt();
@@ -2044,7 +2044,7 @@ async function startEyes(quiet){
 function stopEyes(){ hfOn.eyes=false; closeCameraIfIdle(); }
 function setState(n, mode){
   $("gestName").textContent=n;
-  $("camLabel").textContent = /hand tracker/.test(n) ? "Loading" : /back to the middle/.test(n) ? "Middle" : /^Show/.test(n) ? "Show hand" : /^Ready/.test(n) ? "Ready" : /Hold/.test(n) ? "Hold…" : /Turning|Going back|page$/.test(n) ? "Turning" : ""; const p=$("gestPill"); p.textContent=mode;
+  $("camLabel").textContent = /hand tracker/.test(n) ? "Loading" : /back to the middle/.test(n) ? "Middle" : /^Show/.test(n) ? "Show hand" : /^Ready/.test(n) ? "Ready" : /Hold/.test(n) ? "Hold…" : /Turning|Going back|page$/.test(n) ? "Turning" : /^Scrolling/.test(n) ? "Scroll" : ""; const p=$("gestPill"); p.textContent=mode;
   p.className="pill"+(mode==="active"?" go":mode==="paused"?" paused":"");
 }
 const setEye = t => { $("eyeName").textContent = t; };
@@ -2141,67 +2141,88 @@ function beginTurn(isNext, now, extra){
   hdrag.prep = prepareFlip(isNext).catch(()=>null);
   return true;
 }
-// Hand control, kept simple so it is dependable:
-//  1. Swipe: move your hand sideways across the camera (about a fifth of the picture) and the page turns.
-//     The movement back afterwards is ignored.
-//  2. Hold: keep your hand still near one side for about a second and the page turns.
-// A swipe always wins over a hold, and any hand shape works.
-let hHist = [], hPresentSince = 0, hCool = 0, hIgnoreDir = 0, hIgnoreUntil = 0, hHoldZone = 0, hHoldStart = 0, hHoldUsed = false;
-const SW_DIST = 0.18, SW_MS = 650, SW_LOST = 0.09, EDGE = 0.25, HOLD_TIME = 950, STILL = 0.05;
-function handTurn(dir, how){
-  const isNext = (dir > 0) === (swipeDir === "right");
-  hCool = hNow + 900; hIgnoreDir = -dir; hIgnoreUntil = hNow + 1300; hHist = [];
-  const target = page + (isNext ? 1 : -1);
-  if(target < 1 || target > 604 || turning || flip || !isReading() || overlayOpen()) return;
+// Hand control: four swipes and a hold.
+//  Swipe left / right: turn the page.
+//  Swipe up: scroll down (or the next page when there is nothing more to scroll).
+//  Swipe down: scroll up (or the previous page when already at the top).
+//  Hold your hand still near the left or right side for about a second: turn the page.
+// Movements back after a gesture are ignored, and raising or lowering the hand into or out of view does not count.
+let hHist = [], hPresentSince = 0, hCool = 0, hCoolV = 0, hIgnore = "", hIgnoreUntil = 0, hHoldZone = 0, hHoldStart = 0, hHoldUsed = false, hy = null;
+const SW_DIST = 0.18, SW_DIST_Y = 0.20, SW_MS = 650, SW_LOST = 0.09, EDGE = 0.25, HOLD_TIME = 950, STILL = 0.05, V_SETTLE = 350;
+function handAct(axis, dir){
+  hCool = hNow + 900; hCoolV = hNow + (axis === "x" ? 1500 : 900);
+  hIgnore = axis + (-dir); hIgnoreUntil = hNow + 1300; hHist = [];
+  if(turning || flip || !isReading() || overlayOpen()) return;
   lastSwipe = hNow;
-  setState(isNext ? "Next page" : "Previous page", "active");
-  turn(isNext);
+  if(axis === "x"){
+    const isNext = (dir > 0) === (swipeDir === "right");
+    const target = page + (isNext ? 1 : -1); if(target < 1 || target > 604) return;
+    setState(isNext ? "Next page" : "Previous page", "active");
+    turn(isNext); return;
+  }
+  const se = document.scrollingElement || document.documentElement, step = Math.round(innerHeight * 0.65);
+  if(dir < 0){                                   // hand moved up: read on
+    if(se.scrollTop + innerHeight < se.scrollHeight - 6){ window.scrollBy({top: step, behavior: "smooth"}); setState("Scrolling down", "active"); }
+    else if(page < 604){ setState("Next page", "active"); turn(true); }
+  }else{                                         // hand moved down: go back
+    if(se.scrollTop > 6){ window.scrollBy({top: -step, behavior: "smooth"}); setState("Scrolling up", "active"); }
+    else if(page > 1){ setState("Previous page", "active"); turn(false); }
+  }
 }
-function swipeIn(minDist, within){
-  // the biggest sideways move between any earlier point in the last moment and now
-  if(hHist.length < 2) return 0;
-  const last = hHist[hHist.length-1], cur = last.x; let best = 0;
-  for(const h of hHist){ if(within && last.t - h.t > within) continue; const d = cur - h.x; if(Math.abs(d) > Math.abs(best)) best = d; }
-  if(Math.abs(best) < minDist) return 0;
-  const dir = best > 0 ? 1 : -1;
-  if(dir === hIgnoreDir && hNow < hIgnoreUntil){ hHist = [last]; return 0; }   // the hand coming back after a turn: forget that movement
-  return dir;
+function swipeIn(minX, minY, within, allowY){
+  // the biggest move between any earlier point in the last moment and now; one direction must clearly lead
+  if(hHist.length < 2) return null;
+  const last = hHist[hHist.length-1]; let bx = 0, by = 0, byT = 0;
+  for(const h of hHist){
+    if(within && last.t - h.t > within) continue;
+    const dx = last.x - h.x, dy = last.y - h.y;
+    if(Math.abs(dx) > Math.abs(bx)) bx = dx;
+    if(Math.abs(dy) > Math.abs(by)){ by = dy; byT = h.t; }
+  }
+  let g = null;
+  if(Math.abs(bx) >= minX && Math.abs(bx) > Math.abs(by) * 1.3) g = {axis:"x", dir: bx > 0 ? 1 : -1};
+  else if(allowY && Math.abs(by) >= minY && Math.abs(by) > Math.abs(bx) * 1.6 && byT - hPresentSince > V_SETTLE) g = {axis:"y", dir: by > 0 ? 1 : -1};
+  if(!g) return null;
+  if(g.axis + g.dir === hIgnore && hNow < hIgnoreUntil){ hHist = [last]; return null; }   // the hand coming back: forget that movement
+  return g;
 }
 function handStep(res, now, dt){
   hNow = now;
   const lm = res && res.landmarks && res.landmarks[0];
   if(!lm){
-    // a quick swipe often leaves the picture before it is finished: count it if it was clearly moving
+    // a quick sideways swipe often leaves the picture before it is finished: count it if it was clearly moving
     if(hHist.length >= 2 && now - hLastSeen < 260 && now >= hCool && !turning){
-      const dir = swipeIn(SW_LOST, 250);
-      if(dir){ handTurn(dir, "lost"); return; }
+      const g = swipeIn(SW_LOST, 9, 250, false);
+      if(g){ handAct(g.axis, g.dir); return; }
     }
-    if(now - hLastSeen > 260){ hHist = []; hx = null; hHoldZone = 0; hHoldUsed = false; setState("Show your hand", "active"); }
+    if(now - hLastSeen > 260){ hHist = []; hx = null; hy = null; hHoldZone = 0; hHoldUsed = false; setState("Show your hand", "active"); }
     return;
   }
-  if(now - hLastSeen > 400){ hHist = []; hPresentSince = now; hx = null; }   // the hand has just come into view
+  if(now - hLastSeen > 400){ hHist = []; hPresentSince = now; hx = null; hy = null; }   // the hand has just come into view
   hLastSeen = now; lastHandSeen = now;
   drawHand(lm);
   // palm centre, mirrored so left and right match what you see
-  const rawX = 1 - [0,5,9,13,17].reduce((t,i)=>t+lm[i].x,0)/5;
+  const P = [0,5,9,13,17];
+  const rawX = 1 - P.reduce((t,i)=>t+lm[i].x,0)/5, rawY = P.reduce((t,i)=>t+lm[i].y,0)/5;
   hx = hx === null ? rawX : hx*0.3 + rawX*0.7;
-  hHist.push({t:now, x:hx});
+  hy = hy === null ? rawY : hy*0.3 + rawY*0.7;
+  hHist.push({t:now, x:hx, y:hy});
   while(hHist.length && now - hHist[0].t > SW_MS) hHist.shift();
-  if(now < hCool || turning){ hHist = [hHist[hHist.length-1]]; return; }   // just turned: start fresh
+  if(now < hCool || turning){ hHist = [hHist[hHist.length-1]]; return; }   // just acted: start fresh
   if(now - hPresentSince < 100) return;
 
-  // 1. swipe
-  const dir = swipeIn(SW_DIST);
-  if(dir){ handTurn(dir, "swipe"); return; }
+  // swipes
+  const g = swipeIn(SW_DIST, SW_DIST_Y, 0, now >= hCoolV);
+  if(g){ handAct(g.axis, g.dir); return; }
 
-  // 2. hold still near one side
+  // hold still near the left or right side
   const zone = hx > 1-EDGE ? 1 : (hx < EDGE ? -1 : 0);
   if(zone !== hHoldZone){ hHoldZone = zone; hHoldStart = now; hHoldUsed = false; }
   if(!zone){ setState("Ready · swipe or hold at a side", "active"); return; }
   if(hHoldUsed){ setState("Move your hand back to the middle", "active"); return; }
   let lo = 1, hi = 0; for(const h of hHist){ if(now - h.t < 450){ lo = Math.min(lo, h.x); hi = Math.max(hi, h.x); } }
   if(hi - lo > STILL){ hHoldStart = now; setState("Ready · swipe or hold at a side", "active"); return; }
-  if(now - hHoldStart > HOLD_TIME){ hHoldUsed = true; handTurn(zone, "hold"); return; }
+  if(now - hHoldStart > HOLD_TIME){ hHoldUsed = true; handAct("x", zone); return; }
   if(now - hHoldStart > 250) setState("Hold…", "active");
 }
 
