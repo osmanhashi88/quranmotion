@@ -2249,7 +2249,7 @@ function handStep(res, now, dt){
 
 /* ---------- voice commands: "next page", "back page", "scroll up", "scroll down" ---------- */
 const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
-let voiceOn = store.get("voiceOn", false), rec = null, recSession = 0, voiceLastAct = 0, voiceDone = new Set(), voiceRetry = 0, voiceRestartT = 0;
+let voiceOn = store.get("voiceOn", false), rec = null, recSession = 0, voiceLastAct = 0, voiceDone = new Map(), voiceRetry = 0, voiceRestartT = 0, voiceLastFinal = "", voiceLastFinalAt = 0;
 const VOICE_CMDS = [
   [/\b(scroll|scrolls|scrolled|scrolling|school|skull|scrawl|scroll|roll|rolling|squirrel|go|move|page)\s?(down|done|dawn|town|don)\b|\bdown\b/, "down"],
   [/\b(scroll|scrolls|scrolled|scrolling|school|skull|scrawl|roll|rolling|squirrel|go|move|page)\s?(up|op|app|upp|uh)\b|\bscroll\s?up|\bup\b/, "up"],
@@ -2262,11 +2262,18 @@ function syncMic(state){
   b.setAttribute("aria-pressed", voiceOn);
   b.setAttribute("aria-label", voiceOn ? "Voice commands on. Tap to turn off" : "Turn on voice commands");
 }
-function heard(txt){
-  txt = " " + txt.toLowerCase().replace(/[^a-z ]/g," ") + " ";
-  for(const [re, kind] of VOICE_CMDS) if(re.test(txt)) return kind;
-  return null;
+// every command in a piece of speech, in the order they were said
+const CMD_RE = new RegExp(VOICE_CMDS.map(([re],i)=>`(?<k${i}>${re.source})`).join("|"), "g");
+function commandsIn(txt){
+  txt = " " + txt.toLowerCase().replace(/[^a-z ]/g," ").replace(/\s+/g," ") + " ";
+  const out = []; CMD_RE.lastIndex = 0; let m;
+  while((m = CMD_RE.exec(txt))){
+    if(m[0].length === 0){ CMD_RE.lastIndex++; continue; }
+    for(let i = 0; i < VOICE_CMDS.length; i++) if(m.groups["k"+i] !== undefined){ out.push(VOICE_CMDS[i][1]); break; }
+  }
+  return out;
 }
+const heard = txt => { const c = commandsIn(txt); return c.length ? c[c.length-1] : null; };
 function startVoice(fromTap){
   if(!SpeechRec){ if(fromTap) toast("Voice commands need Chrome or Safari"); voiceOn = false; store.set("voiceOn", false); syncMic(); return; }
   voiceOn = true; store.set("voiceOn", true);
@@ -2275,16 +2282,26 @@ function startVoice(fromTap){
   r.lang = "en-GB"; r.continuous = true; r.interimResults = true; r.maxAlternatives = 3;
   r.onstart = ()=>{ voiceRetry = 0; syncMic("on"); };
   r.onresult = e=>{
+    // phones keep adding words to the same piece of text while listening ("next page scroll down scroll down"),
+    // so count the commands in each piece and act on the new ones
     for(let i = e.resultIndex; i < e.results.length; i++){
-      const key = sid + ":" + i; if(voiceDone.has(key)) continue;
-      const res = e.results[i]; let txt = "";
-      for(let k = 0; k < res.length; k++) txt += " " + res[k].transcript;
-      const kind = heard(txt); if(!kind) continue;
-      voiceDone.add(key);
+      const key = sid + ":" + i, res = e.results[i];
+      const txt = res[0].transcript;
+      const cmds = commandsIn(txt);
+      const done = voiceDone.get(key) || 0;
+      if(cmds.length <= done) continue;
+      voiceDone.set(key, cmds.length);
       const now = performance.now();
-      if(now - voiceLastAct < 900 || !isReading() || overlayOpen() || turning || flip) continue;
+      // some phones repeat a finished sentence as a new piece: ignore an exact repeat straight away
+      if(res.isFinal){
+        const norm = txt.trim().toLowerCase();
+        const repeat = norm === voiceLastFinal && now - voiceLastFinalAt < 1500;
+        voiceLastFinal = norm; voiceLastFinalAt = now;
+        if(repeat && done === 0) continue;
+      }
+      if(now - voiceLastAct < 700 || !isReading() || overlayOpen() || turning || flip) continue;
       voiceLastAct = now;
-      const what = readMove(kind);
+      const what = readMove(cmds[cmds.length-1]);
       if(what) toast(what);
     }
   };
