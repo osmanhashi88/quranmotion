@@ -512,6 +512,17 @@ body.full .pfoot .pn{font-family:var(--ui);font-size:12.5px;opacity:1;color:var(
 body.full #reader .frame-in{padding:0 8px 2px}
 body.full #reader main{padding-bottom:calc(2px + env(safe-area-inset-bottom,0px))!important}
 .mpage:not(.opening) .mline{line-height:var(--mlh,1.85)}
+
+/* full screen page: no frame, text edge to edge */
+#reader,body.full #reader .mushaf{background:var(--pbg)!important}
+body[data-rt=paper]{--pbg:#FDF6E3}
+.mframe,.mpage.opening::before,.mpage.opening::after{display:none!important}
+body.full #reader .frame-in,body.full[data-rt=night] #reader .frame-in{box-shadow:none!important;padding:0 4px 0!important}
+body.full #reader .phead{min-height:46px;padding:0 54px!important;justify-content:space-between}
+body.full #reader .phead span{background:var(--pbg2);border:1px solid var(--pframe);border-radius:999px;padding:4px 12px;color:var(--pmark);font-size:13.5px;letter-spacing:.02em}
+body.full #reader .phead span::before{display:none}
+body.full .pfoot::before,body.full .pfoot::after{display:none}
+body.full .pfoot .pn{box-shadow:none;background:var(--pbg2);border-color:var(--pframe)}
 </style>
 </head>
 <body>
@@ -1384,7 +1395,7 @@ async function fitMushaf(){
   if(!maxW) pageEl.querySelectorAll(".mline:not(.tl)").forEach(r=>{ maxW = Math.max(maxW, ctx.measureText(r.textContent).width*1.04); });
   const opening = pageEl.classList.contains("opening");
   // the frame's margins are in em, so they grow and shrink with the text
-  const PADX = opening ? 1.4 : 0.62, PADY = opening ? 1.9 : 0.5;
+  const PADX = opening ? 0.25 : 0.12, PADY = opening ? 1.0 : 0.15;
   pageEl.style.padding = `${PADY}em ${PADX}em`;
   const avail = wrap.clientWidth;
   const zoom = arSize/30;
@@ -1401,7 +1412,7 @@ async function fitMushaf(){
   const lines = opening ? pageEl.querySelectorAll(".mline").length + 0.4 : 15;
   const byWidth = 0.97*W / (k + 2*PADX*0.97);
   // fill the full width: lines may sit a little closer (down to 1.55) before the text gets smaller
-  const LHmin = opening ? LH : 1.55;
+  const LHmin = opening ? LH : 1.5;
   const byHeight = availH / (lines*LHmin + 2*PADY + 0.25);
   const fontPx = (zoom > 1.01 || !portrait) ? Math.min(60*zoom, byWidth) : Math.min(60, byWidth, byHeight);
   pageEl.style.fontSize = fontPx + "px";
