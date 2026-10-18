@@ -427,6 +427,22 @@ body.immersive:not(:has(#reader[hidden])) #homeFloat{display:grid}
 .rjump .jrow{grid-template-columns:minmax(0,1.55fr) minmax(0,1fr) minmax(0,1fr);gap:6px}
 .rjump .jsel{font-size:13.5px;padding:8px 4px}
 body.immersive #reader .phead{padding-left:50px}
+
+/* camera works out of sight: nothing covers the Quran */
+#cam{position:fixed!important;left:-10000px!important;top:0!important;bottom:auto!important;width:160px!important;pointer-events:none}
+#camBtn{position:relative;overflow:hidden}
+#miniCam,#miniCam2{position:absolute;inset:0;width:100%;height:100%;border-radius:50%}
+#camBtn[data-cam],#camFloat[data-cam]{box-shadow:0 0 0 2px #8A9A95}
+#camBtn[data-cam=seen],#camFloat[data-cam=seen]{box-shadow:0 0 0 2.5px #4FD1A5}
+#camBtn[data-cam=turn],#camFloat[data-cam=turn]{box-shadow:0 0 0 3px var(--gold)}
+#camFloat{position:fixed;z-index:32;right:max(10px,env(safe-area-inset-right,0px));top:calc(10px + env(safe-area-inset-top,0px));
+  width:42px;height:42px;border-radius:50%;background:#0E1A17;overflow:hidden;padding:0}
+.hflive{display:flex;gap:12px;align-items:center;background:#0E1A17;color:#E5EFEB;border-radius:14px;padding:10px;margin-bottom:12px}
+.hflive canvas{width:120px;height:90px;border-radius:10px;flex:none;background:#0E1A17}
+.hfstat{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+.hfstat .state{padding:0;font-size:13.5px;display:flex;justify-content:space-between;gap:6px;align-items:center}
+.hfstat .camfoot{padding:0;color:#93A8A2}
+.hfstat .camfoot button{background:#1F2F2B;color:#6FCDB4}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 @media (max-width:480px){#cam{width:140px}}
 </style>
@@ -482,7 +498,7 @@ body.immersive #reader .phead{padding-left:50px}
     <div class="wrap gut in">
       <button class="roundbtn" id="backBtn" aria-label="Home" title="Home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linejoin="round" stroke-linecap="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h5v-6h4v6h5V10"/></svg></button>
       <div class="rtitle"><div class="a" id="rAr">الفاتحة</div><div class="e" id="rEn">Al-Faatiha · Juz 1</div></div>
-      <button class="roundbtn" id="camBtn" aria-label="Hands-free page turning" title="Hands-free page turning"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 11V6a2 2 0 0 0-4 0v5M14 10V4a2 2 0 0 0-4 0v6M10 10.5V6a2 2 0 0 0-4 0v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.9-6-2.4l-3.6-3.6a2 2 0 0 1 2.8-2.8L7 15"/></svg></button>
+      <button class="roundbtn" id="camBtn" aria-label="Hands-free page turning" title="Hands-free page turning"><canvas id="miniCam" width="72" height="72" hidden></canvas><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 11V6a2 2 0 0 0-4 0v5M14 10V4a2 2 0 0 0-4 0v6M10 10.5V6a2 2 0 0 0-4 0v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.9-6-2.4l-3.6-3.6a2 2 0 0 1 2.8-2.8L7 15"/></svg></button>
       <button class="roundbtn" id="bmBtn" aria-label="Bookmark this page" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M6 3h12v18l-6-4.5L6 21z"/></svg></button>
       <button class="roundbtn" id="readSettings" aria-label="Reading settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></button>
     </div>
@@ -572,6 +588,14 @@ body.immersive #reader .phead{padding-left:50px}
     <div class="grab"></div>
     <h2>Turn pages without touching</h2>
     <p class="hfsub">Tap to switch each one on or off. They can all work together.</p>
+    <div class="hflive" id="hfLive" hidden>
+      <canvas id="liveCam" width="160" height="120"></canvas>
+      <div class="hfstat">
+        <div class="state" id="handRow"><span id="gestName">Starting…</span><span class="pill" id="gestPill">loading</span></div>
+        <div class="state" id="eyeRow" hidden><span id="eyeName">Starting…</span><span class="pill go">eyes</span></div>
+        <div class="camfoot"><span>🔒 Private, nothing recorded</span><button id="camStop">Stop camera</button></div>
+      </div>
+    </div>
     <button class="gobtn" id="hfAll" style="margin:0 0 12px">Turn on all four</button>
     <div class="hfopts">
       <button class="hfopt" data-m="hand" aria-pressed="false">
@@ -613,10 +637,8 @@ body.immersive #reader .phead{padding-left:50px}
     <canvas id="overlay"></canvas>
     <div class="zones"><div class="z1"><span style="top:4px">UP</span></div><div class="z3"><span style="bottom:4px">DOWN</span></div></div>
   </div>
-  <div class="state" id="handRow"><span id="gestName">Starting…</span><span class="pill" id="gestPill">loading</span></div>
-  <div class="state" id="eyeRow" hidden><span id="eyeName">Starting…</span><span class="pill go">eyes</span></div>
-  <div class="camfoot"><span>🔒 Private, nothing recorded</span><button id="camStop">Stop</button></div>
 </div>
+<button id="camFloat" hidden aria-label="Hands-free"><canvas id="miniCam2" width="72" height="72"></canvas></button>
 <div class="sheet" id="camHelp" hidden role="dialog" aria-label="Hand control help">
   <div class="wrap gut">
     <div class="grab"></div>
@@ -1627,6 +1649,7 @@ function syncHF(){
 const openHF = ()=>{ syncHF(); $("hfSheet").hidden=false; $("scrim").hidden=false; };
 const closeHF = ()=>{ $("hfSheet").hidden=true; $("scrim").hidden=true; };
 $("camBtn").onclick = openHF;
+$("camFloat").onclick = openHF;
 $("hfClose").onclick = closeHF;
 $("hfStop").onclick = ()=>{ stopHandsFree(); closeHF(); };
 $("hfX").onclick = ()=>{ stopTilt(); stopAuto(); syncHF(); };
@@ -1766,7 +1789,7 @@ function closeCameraIfIdle(){
   $("handRow").hidden = !hfOn.hand; $("eyeRow").hidden = !hfOn.eyes;
   if(hfOn.hand || hfOn.eyes) return;
   running=false; if(stream) stream.getTracks().forEach(t=>t.stop()); stream=null; video.srcObject=null;
-  $("cam").hidden=true;
+  $("cam").hidden=true; $("miniCam").hidden=true; $("hfLive").hidden=true; $("camFloat").hidden=true; delete $("camBtn").dataset.cam;
 }
 function camFail(err, what){
   const blocked = err && (err.name==="NotAllowedError" || err.name==="SecurityError");
@@ -1801,7 +1824,27 @@ const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
 function fingersUp(lm){ const w=lm[0]; let n=0;
   [[8,6],[12,10],[16,14],[20,18]].forEach(([t,p])=>{ if(dist(lm[t],w)>dist(lm[p],w)*1.12) n++; }); return n; }
 
-let lastVideoTime = -1, frameN = 0;
+let lastVideoTime = -1, frameN = 0, lastHandSeen = 0, lastFaceSeen = 0;
+function drawMini(c){
+  const x = c.getContext("2d"), w = c.width, h = c.height, sw = canvas.height, sx = (canvas.width - sw) / 2;
+  x.save(); x.clearRect(0,0,w,h);
+  x.beginPath(); x.arc(w/2,h/2,w/2,0,Math.PI*2); x.clip();
+  x.setTransform(-1,0,0,1,w,0);                       // mirror, like looking in a mirror
+  x.drawImage(canvas, sx, 0, sw, sw, 0, 0, w, h);
+  x.restore();
+}
+function drawViews(now){
+  const live = hfOn.hand || hfOn.eyes;
+  $("miniCam").hidden = !live; $("hfLive").hidden = !live;
+  $("camFloat").hidden = !(live && document.body.classList.contains("immersive"));
+  if(!live) return;
+  const seen = now - Math.max(lastHandSeen, lastFaceSeen) < 400;
+  const st = (hdrag || turning) ? "turn" : (seen ? "seen" : "none");
+  [$("camBtn"), $("camFloat")].forEach(b=> b.dataset.cam = st);
+  drawMini($("miniCam"));
+  if(!$("camFloat").hidden) drawMini($("miniCam2"));
+  if(!$("hfSheet").hidden){ const lc = $("liveCam").getContext("2d"); lc.save(); lc.setTransform(-1,0,0,1,160,0); lc.drawImage(canvas,0,0,160,120); lc.restore(); }
+}
 function loop(){
   if(!running) return;
   const now=performance.now(), dt=Math.min(64,now-lastT); lastT=now;
@@ -1812,6 +1855,7 @@ function loop(){
     const both = hfOn.hand && hfOn.eyes && landmarker && faceLm;
     if(hfOn.hand && landmarker && (!both || frameN % 2 === 0)){ let res=null; try{ res=landmarker.detectForVideo(video,now); }catch{} handStep(res, now, dt); }
     if(hfOn.eyes && faceLm && (!both || frameN % 2 === 1)){ let fr=null; try{ fr=faceLm.detectForVideo(video,now); }catch{} eyeStep(fr, now, dt); }
+    drawViews(now);
   }else if(hfOn.hand && hdrag) handFollow(now);
   requestAnimationFrame(loop);
 }
@@ -1848,7 +1892,7 @@ function handStep(res, now, dt){
     if(!hdrag){ hx=null; hLastX=null; hAnchor=null; hVel=0; setState(paused?"Paused · fist to resume":"Show your hand", paused?"paused":"active"); }
     return;
   }
-  hLastSeen = now;
+  hLastSeen = now; lastHandSeen = now;
   drawHand(lm);
   const up=fingersUp(lm), pts=[0,5,9,13,17].map(i=>lm[i]);
   const rawX=1-pts.reduce((s,p)=>s+p.x,0)/5, cy=pts.reduce((s,p)=>s+p.y,0)/5;
@@ -1920,6 +1964,7 @@ function eyeStep(fr, now, dt){
   const cats = fr && fr.faceBlendshapes && fr.faceBlendshapes[0] && fr.faceBlendshapes[0].categories;
   const L = fr && fr.faceLandmarks && fr.faceLandmarks[0];
   if(!cats || !L){ setEye("Look at the screen"); gazeSide=0; gazeV=0; return; }
+  lastFaceSeen = now;
   const b = {}; cats.forEach(c=> b[c.categoryName] = c.score);
   // draw the eyes as two small gold rings, no face
   const W=canvas.width, H=canvas.height;

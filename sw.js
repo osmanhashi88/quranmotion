@@ -2,7 +2,7 @@
 // The app itself (with the full Arabic and English Quran inside) is cached on install.
 // Fonts, the hand tracking model and extra translations are cached the first time they load,
 // so after one online visit they work offline too.
-const VERSION = "qh-v24";
+const VERSION = "qh-v25";
 const SHELL = [
   "./",
   "./index.html",
