@@ -2251,8 +2251,8 @@ let voiceOn = store.get("voiceOn", false), rec = null, recSession = 0, voiceLast
 const VOICE_CMDS = [
   [/scroll(ing)? down|go down|down page/, "down"],
   [/scroll(ing)? up|go up|up page/, "up"],
-  [/\b(next|nest|necks|forward)\b/, "next"],
-  [/\b(back|previous|go back|last page)\b/, "prev"],
+  [/\b(back|bak|pack|bag|black|bad|buck|beck)\s?(page|paige|pace|paid|pays|pages)|\b(go|going|turn|page)\s?back|\bback|\bprevious|\bprev\b|\bbefore\b|\blast page|\breturn/, "prev"],
+  [/\b(next|nest|necks|nex|forward|neck page|text page)/, "next"],
 ];
 function syncMic(state){
   const b = $("micFloat"); if(!b) return;
