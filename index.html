@@ -447,6 +447,7 @@ body.immersive #reader .phead{padding-left:50px}
 .hflist{list-style:none;margin:4px 0 14px;padding:0;display:flex;flex-direction:column;gap:10px}
 .hflist li{display:flex;align-items:center;gap:12px;font-size:15px;line-height:1.4}
 .hflist b{color:var(--ink)}
+.openweb{display:block;text-align:center;text-decoration:none;margin:12px 0 4px}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 @media (max-width:480px){#cam{width:140px}}
 </style>
@@ -627,20 +628,19 @@ body.immersive #reader .phead{padding-left:50px}
   </div>
 </div>
 <button id="camFloat" hidden aria-label="Hands-free"><canvas id="miniCam2" width="72" height="72"></canvas></button>
-<div class="sheet" id="camHelp" hidden role="dialog" aria-label="Hand control help">
+<div class="sheet" id="camHelp" hidden role="dialog" aria-label="Gestures help">
   <div class="wrap gut">
     <div class="grab"></div>
-    <h2>Hand control can't start here</h2>
+    <h2>Gestures need the camera</h2>
     <p id="camHelpWhy" class="chw"></p>
     <div class="help">
-      <b>To use hand gestures:</b><br>
-      1. In the Claude chat, download <b>quranmotion-app.zip</b> to your phone<br>
-      2. Open Chrome (Safari on iPhone) and go to <b>app.netlify.com/drop</b><br>
-      3. Tap <b>browse to upload</b> and pick the zip<br>
-      4. Open the link it gives you and tap <b>Install app</b><br>
-      5. In the installed app, tap the hand icon and allow the camera
+      <b>To use gestures:</b><br>
+      1. Open <b>quranmotion.com</b> in Chrome (Safari on iPhone)<br>
+      2. Tap <b>Install app</b> to add QuranMotion to your home screen<br>
+      3. Open the app, tap the hand button and allow the camera
     </div>
-    <p class="chw">Until then you can swipe the page with your finger, or use the Next and Prev buttons.</p>
+    <a class="gobtn openweb" id="camHelpOpen" href="https://quranmotion.com" target="_blank" rel="noopener">Open quranmotion.com</a>
+    <p class="chw">You can always swipe the page with your finger, or use the Next and Prev buttons.</p>
     <button class="ctl" id="camHelpOk" style="width:100%;font-weight:600">OK</button>
   </div>
 </div>
