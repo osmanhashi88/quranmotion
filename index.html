@@ -1863,7 +1863,7 @@ document.addEventListener("touchend", e=>{
 document.addEventListener("touchcancel", ()=>{ if(g && g.dragging) cancelFlip(); g=null; pinch=null; }, {passive:true});
 
 let toastT;
-function toast(m){ const t=$("toast"); t.textContent=m; t.classList.add("show"); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove("show"),700); }
+function toast(m){ const t=$("toast"); t.textContent=m; t.classList.add("show"); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove("show"), Math.max(700, m.length*45)); }
 
 /* ---------- hand gestures ---------- */
 let landmarker=null, stream=null, running=false, paused=false;
@@ -2176,19 +2176,19 @@ function handAct(axis, dir){
   const what = readMove(dir < 0 ? "down" : "up");   // hand up: read on, hand down: go back
   if(what) setState(what, "active");
 }
-// next / previous page, or scroll down / up (moving to the next or previous page when there is nothing left to scroll)
+// next / previous page, or scroll down / up. Scrolling only ever scrolls: it never changes the page.
 function readMove(kind){
-  const se = document.scrollingElement || document.documentElement, step = Math.round(innerHeight * 0.65);
-  if(kind === "next"){ if(page < 604){ turn(true); return "Next page"; } return ""; }
-  if(kind === "prev"){ if(page > 1){ turn(false); return "Previous page"; } return ""; }
-  if(kind === "down"){
-    if(se.scrollTop + innerHeight < se.scrollHeight - 6){ window.scrollBy({top: step, behavior: "smooth"}); return "Scrolling down"; }
-    if(page < 604){ turn(true); return "Next page"; } return "";
-  }
-  if(se.scrollTop > 6){ window.scrollBy({top: -step, behavior: "smooth"}); return "Scrolling up"; }
-  // at the top: go back a page and land at its bottom, so reading carries on upwards
-  if(page > 1){ turn(false).then(()=>{ const e = document.scrollingElement || document.documentElement; if(e.scrollHeight > innerHeight + 6) window.scrollTo({top: e.scrollHeight}); }); return "Previous page"; }
-  return "";
+  if(kind === "next"){ if(page < 604){ turn(true); return "Next page"; } return "Last page"; }
+  if(kind === "prev"){ if(page > 1){ turn(false); return "Previous page"; } return "First page"; }
+  const se = document.scrollingElement || document.documentElement;
+  const step = Math.round(innerHeight * 0.6) * (kind === "down" ? 1 : -1);
+  const before = window.scrollY || se.scrollTop || 0;
+  const room = kind === "down" ? (se.scrollHeight - innerHeight - before) : before;
+  if(room <= 4) return kind === "down" ? "End of this page · say next page" : "Top of this page · say back page";
+  window.scrollBy({top: step, behavior: "smooth"});
+  // some browsers ignore smooth scrolling: make sure it moved
+  setTimeout(()=>{ if(Math.abs((window.scrollY || se.scrollTop || 0) - before) < 2) window.scrollTo(0, before + step); }, 450);
+  return kind === "down" ? "Scrolling down" : "Scrolling up";
 }
 function swipeIn(minX, minY, within, allowY){
   // the biggest move between any earlier point in the last moment and now; one direction must clearly lead
@@ -2295,7 +2295,7 @@ function startVoice(fromTap){
       // some phones repeat a finished sentence as a new piece: ignore an exact repeat straight away
       if(res.isFinal){
         const norm = txt.trim().toLowerCase();
-        const repeat = norm === voiceLastFinal && now - voiceLastFinalAt < 1500;
+        const repeat = norm === voiceLastFinal && now - voiceLastFinalAt < 600;
         voiceLastFinal = norm; voiceLastFinalAt = now;
         if(repeat && done === 0) continue;
       }
