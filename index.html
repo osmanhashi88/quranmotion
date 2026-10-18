@@ -575,6 +575,8 @@ body.full:not(:has(#reader[hidden])) #micFloat{display:grid}
 #micHeard{display:none;position:fixed;z-index:32;right:calc(max(10px,env(safe-area-inset-right,0px)) + 42px);bottom:calc(8px + env(safe-area-inset-bottom,0px));
   max-width:60vw;padding:4px 10px;border-radius:999px;background:var(--pmark);color:var(--pbg);font:600 12px/1.3 var(--ui);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:.92;pointer-events:none}
 #micHeard.show{display:block}
+.mscroll[style*="pan-y"]:not([style*="pan-x"]){overflow-x:hidden}
+.qpage .qline{min-width:0}
 </style>
 </head>
 <body>
@@ -1518,6 +1520,10 @@ async function fitMushaf(){
   const ctx = fitCanvas.getContext("2d"); ctx.font = qfont ? `100px "${qfont}"` : '100px "KFGQPC Hafs"';
   let maxW = 0;
   if(qfont){
+    // this edition breaks some lines differently from the older layout: a line only stays centred if it really is short
+    { let full = 0; const wOf = r => ctx.measureText(r.textContent).width;
+      pageEl.querySelectorAll(".qline:not(.c)").forEach(r=>{ full = Math.max(full, wOf(r)); });
+      if(full) pageEl.querySelectorAll(".qline.c:not(.qb)").forEach(r=>{ if(wOf(r) > full*0.8) r.classList.remove("c"); }); }
     // the bold Madinah font: words are single glyphs, spread across the line with a small minimum gap
     pageEl.querySelectorAll(".qline:not(.c)").forEach(r=>{ maxW = Math.max(maxW, ctx.measureText(r.textContent).width + (r.children.length-1)*6); });
     if(!maxW) pageEl.querySelectorAll(".qline").forEach(r=>{ maxW = Math.max(maxW, ctx.measureText(r.textContent).width*1.06 + (r.children.length-1)*12); });
@@ -1552,6 +1558,18 @@ async function fitMushaf(){
   pageEl.style.fontSize = fontPx + "px";
   pageEl.style.setProperty("--mlh", opening ? LH : Math.max(LHmin, Math.min(LH, portrait && zoom<=1.01 ? (availH/fontPx - 2*PADY - 0.25)/lines : LH)));
   pageEl.style.minHeight = (zoom > 1.01 || !portrait) ? "" : Math.max(0, availH) + "px";
+  // safety: if a bold Madinah line comes out wider than the page, shrink the text just enough
+  if(qfont){
+    for(let i=0;i<4;i++){
+      let worst = 1;
+      const pcs = getComputedStyle(pageEl), inner = pageEl.clientWidth - parseFloat(pcs.paddingLeft) - parseFloat(pcs.paddingRight);
+      pageEl.querySelectorAll(".qline").forEach(l=>{ let w = [...l.children].reduce((t,c)=>t+c.getBoundingClientRect().width,0);
+        if(l.classList.contains("c")) w += (l.children.length-1) * parseFloat(getComputedStyle(l).columnGap || 0);
+        if(inner > 0) worst = Math.max(worst, w / inner); });
+      if(worst <= 1.002) break;
+      pageEl.style.fontSize = (parseFloat(pageEl.style.fontSize) / worst * 0.995) + "px";
+    }
+  }
   // safety: if any line wrapped onto two rows, shrink the text a little until every line fits
   for(let i=0;i<8;i++){
     const lh = parseFloat(getComputedStyle(pageEl.querySelector(".mline:not(.tl)")||pageEl).lineHeight)||0;
@@ -1799,7 +1817,8 @@ const tdist = t => Math.hypot(t[0].clientX-t[1].clientX, t[0].clientY-t[1].clien
 const overlayOpen = ()=> !$("sheet").hidden || !$("hfSheet").hidden || !$("camHelp").hidden || ($("iosHelp") && !$("iosHelp").hidden);
 // when zoomed in, a sideways swipe first pans the page; it only turns the page once you reach the edge
 function edgeAllows(sc, dx){
-  if(!sc || sc.scrollWidth <= sc.clientWidth + 2) return true;
+  // only a zoomed-in page pans sideways; otherwise a swipe always turns the page
+  if(!sc || arSize/30 <= 1.01 || sc.scrollWidth <= sc.clientWidth + 12) return true;
   const max = sc.scrollWidth - sc.clientWidth, sl = sc.scrollLeft;   // RTL: 0 at the right edge, negative to the left
   const atRight = sl >= -1, atLeft = sl <= -max + 1;
   return dx > 0 ? atLeft : atRight;
