@@ -517,13 +517,13 @@ body.full #reader main{padding-bottom:calc(2px + env(safe-area-inset-bottom,0px)
 #reader,body.full #reader .mushaf{background:var(--pbg)!important}
 body[data-rt=paper]{--pbg:#FDF6E3}
 .mframe,.mpage.opening::before,.mpage.opening::after{display:none!important}
-body.full #reader .frame-in,body.full[data-rt=night] #reader .frame-in{box-shadow:none!important;padding:0 4px 0!important}
+body.full #reader .frame-in,body.full[data-rt=night] #reader .frame-in{box-shadow:none!important;padding:0 2px 0!important}
 body.full #reader .phead{min-height:46px;padding:0 54px!important;justify-content:space-between}
 body.full #reader .phead span{background:var(--pbg2);border:1px solid var(--pframe);border-radius:999px;padding:4px 12px;color:var(--pmark);font-size:13.5px;letter-spacing:.02em}
 body.full #reader .phead span::before{display:none}
 body.full .pfoot::before,body.full .pfoot::after{display:none}
 body.full .pfoot .pn{box-shadow:none;background:var(--pbg2);border-color:var(--pframe)}
-.mpage:not(.opening) .mline:not(.c){word-spacing:-.11em}
+.mpage:not(.opening) .mline:not(.c){word-spacing:-.17em}
 .mpage .mline{-webkit-text-stroke:.055em currentColor}
 .mpage .mline .mark{margin-inline:.08em;font-size:1.12em;line-height:0;-webkit-text-stroke:.01em currentColor}
 </style>
@@ -1395,12 +1395,12 @@ async function fitMushaf(){
   const ctx = fitCanvas.getContext("2d"); ctx.font = '100px "KFGQPC Hafs"';
   let maxW = 0;
   // words sit close together (like a printed mushaf), so the letters can be bigger
-  const WS = pageEl.classList.contains("opening") ? 0 : -0.11;
+  const WS = pageEl.classList.contains("opening") ? 0 : -0.17;
   pageEl.querySelectorAll(".mline:not(.c):not(.tl)").forEach(r=>{ const t=r.textContent; maxW = Math.max(maxW, ctx.measureText(t).width + (t.split(" ").length-1)*WS*100 + r.querySelectorAll(".mark").length*32); });
   if(!maxW) pageEl.querySelectorAll(".mline:not(.tl)").forEach(r=>{ maxW = Math.max(maxW, ctx.measureText(r.textContent).width*1.04 + r.querySelectorAll(".mark").length*32); });
   const opening = pageEl.classList.contains("opening");
   // the frame's margins are in em, so they grow and shrink with the text
-  const PADX = opening ? 0.25 : 0.12, PADY = opening ? 1.0 : 0.15;
+  const PADX = opening ? 0.2 : 0.05, PADY = opening ? 1.0 : 0.15;
   pageEl.style.padding = `${PADY}em ${PADX}em`;
   const avail = wrap.clientWidth;
   const zoom = arSize/30;
@@ -1415,7 +1415,7 @@ async function fitMushaf(){
   const availH = window.innerHeight - chrome;
   const k = maxW/100, LH = opening ? 2.35 : 1.85;
   const lines = opening ? pageEl.querySelectorAll(".mline").length + 0.4 : 15;
-  const byWidth = 0.97*W / (k + 2*PADX*0.97);
+  const byWidth = 0.985*W / (k + 2*PADX*0.985);
   // fill the full width: lines may sit a little closer (down to 1.55) before the text gets smaller
   const LHmin = opening ? LH : 1.5;
   const byHeight = availH / (lines*LHmin + 2*PADY + 0.25);
@@ -1423,6 +1423,13 @@ async function fitMushaf(){
   pageEl.style.fontSize = fontPx + "px";
   pageEl.style.setProperty("--mlh", opening ? LH : Math.max(LHmin, Math.min(LH, portrait && zoom<=1.01 ? (availH/fontPx - 2*PADY - 0.25)/lines : LH)));
   pageEl.style.minHeight = (zoom > 1.01 || !portrait) ? "" : Math.max(0, availH) + "px";
+  // safety: if any line wrapped onto two rows, shrink the text a little until every line fits
+  for(let i=0;i<8;i++){
+    const lh = parseFloat(getComputedStyle(pageEl.querySelector(".mline:not(.tl)")||pageEl).lineHeight)||0;
+    const wrapped = lh && [...pageEl.querySelectorAll(".mline:not(.tl)")].some(l=>l.getBoundingClientRect().height > lh*1.5);
+    if(!wrapped) break;
+    pageEl.style.fontSize = (parseFloat(pageEl.style.fontSize)*0.97) + "px";
+  }
   pageEl.querySelectorAll(".mtitle").forEach(drawCartouche);
 }
 // the decorated surah title: pointed ends, a double rule and two rosettes, drawn to fit its box exactly
