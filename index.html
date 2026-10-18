@@ -180,7 +180,9 @@ body.hide-tr .tr{display:none}
 #cam{position:fixed;z-index:30;right:max(12px,env(safe-area-inset-right,0px));bottom:calc(72px + env(safe-area-inset-bottom,0px));
   width:180px;background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,.2)}
 #cam .vid{position:relative;aspect-ratio:4/3;background:#000;max-width:100%}
-#cam video{visibility:hidden}
+#cam video{visibility:hidden;opacity:0}
+#cam .vid{background:#0E1A17}
+#cam.showpic video{opacity:1}
 .installbtn{margin-left:auto;margin-right:8px;background:var(--gold);color:#1d1606;font-weight:700;border-radius:999px;padding:8px 14px;font-size:13.5px}
 .chw{color:var(--muted);line-height:1.55;font-size:14.5px}
 #cam video,#cam canvas{position:absolute;inset:0;width:100%;height:100%;transform:scaleX(-1);object-fit:cover}
@@ -607,7 +609,7 @@ body.immersive #reader .phead{padding-left:50px}
 <div id="hfPill" hidden><span id="hfPillText"></span><button id="hfPause" aria-label="Pause">❚❚</button><button id="hfX" aria-label="Stop">✕</button></div>
 <div id="cam" hidden>
   <div class="vid">
-    <video id="video" playsinline muted></video>
+    <video id="video" playsinline muted style="visibility:hidden"></video>
     <canvas id="overlay"></canvas>
     <div class="zones"><div class="z1"><span style="top:4px">UP</span></div><div class="z3"><span style="bottom:4px">DOWN</span></div></div>
   </div>
@@ -1608,10 +1610,11 @@ const video=$("video"), canvas=$("overlay"), ctx=canvas.getContext("2d");
 const hist=[]; let lastSwipe=0, fistStart=0, smoothY=null, lastT=performance.now();
 /* ---------- hands-free: hand wave, tilt and timed page turns, one at a time or all together ---------- */
 const hfOn = {hand:false, eyes:false, tilt:false, auto:false};
-let showCam = store.get("showCam", false), autoSec = store.get("autoSec", 60);
+store.set("showCam", false);
+let showCam = false, autoSec = store.get("autoSec", 60);
 let autoStart = store.get("hfAutoStart", false), autoModes = store.get("hfModes", ["hand","tilt","auto"]);
 $("showCam").checked = showCam; $("autoSec").value = String(autoSec); $("hfAutoStart").checked = autoStart;
-$("showCam").onchange = e=>{ showCam = e.target.checked; store.set("showCam", showCam); if(running) video.style.visibility = showCam ? "visible" : "hidden"; };
+$("showCam").onchange = e=>{ showCam = e.target.checked; $("cam").classList.toggle("showpic", showCam); if(running) video.style.visibility = showCam ? "visible" : "hidden"; };
 $("autoSec").onclick = e=> e.stopPropagation();
 $("autoSec").onchange = e=>{ autoSec = +e.target.value; store.set("autoSec", autoSec); if(hfOn.auto){ autoLeft = autoSec; updatePill(); } };
 const anyOn = ()=> hfOn.hand || hfOn.eyes || hfOn.tilt || hfOn.auto;
@@ -1754,8 +1757,9 @@ async function loadFace(){
 async function openCamera(){
   if(stream) return;
   stream = await navigator.mediaDevices.getUserMedia({ video:{ facingMode:"user", width:{ideal:320}, height:{ideal:240}, frameRate:{ideal:30} }, audio:false });
-  video.srcObject=stream; await video.play(); video.style.visibility = showCam ? "visible" : "hidden";
-  canvas.width=video.videoWidth; canvas.height=video.videoHeight;
+  video.style.visibility = "hidden"; video.srcObject=stream; await video.play(); video.style.visibility = showCam ? "visible" : "hidden"; $("cam").classList.toggle("showpic", showCam);
+  canvas.width=video.videoWidth||320; canvas.height=video.videoHeight||240;
+  ctx.fillStyle = "#0E1A17"; ctx.fillRect(0,0,canvas.width,canvas.height);
   running=true; requestAnimationFrame(loop);
 }
 function closeCameraIfIdle(){
