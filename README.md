@@ -8,7 +8,8 @@ QuranMotion is a web app you can install on iPhone and Android. It works offline
 
 - All 604 pages in the 15 line Madinah mushaf layout, in the King Fahd Complex Uthmanic Hafs font
 - Full Arabic view, or Arabic with translation (English built in, 30 more languages when online)
-- One tap turns on hands-free gestures: wave your hand, blink twice or tilt the phone to turn the page. The camera picture is never shown or recorded
+- One tap turns on hand gestures: swipe your hand across the camera, or hold it at one side, to turn the page. The camera picture is never shown or recorded
+- Full page reading: the whole mushaf page fits the screen, with the menu shown only when you tap
 - Optional automatic page turns on a timer, in reading settings
 - Or swipe with a finger or use the buttons, with a paper curl page turn
 - Pinch or double tap to zoom, tap for full screen, White, Paper and Night page colours
@@ -19,15 +20,11 @@ QuranMotion is a web app you can install on iPhone and Android. It works offline
 
 | Gesture | Action |
 | --- | --- |
-| Open hand, swipe to your right | Next page |
-| Open hand, swipe to your left | Previous page |
-| Open hand, top of the camera | Scroll up |
-| Open hand, bottom of the camera | Scroll down |
-| Fist held for 1 second | Pause or resume |
+| Swipe your hand to your right | Next page |
+| Swipe your hand to your left | Previous page |
+| Hold your hand at your right side | Next page |
+| Hold your hand at your left side | Previous page |
 
-| Blink twice quickly | Next page |
-| Look down or up and hold | Scroll |
-| Look to the side and hold | Turn the page |
 
 The swipe direction can be flipped in settings.
 

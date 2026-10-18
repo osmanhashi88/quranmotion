@@ -448,6 +448,19 @@ body.immersive #reader .phead{padding-left:50px}
 .hflist li{display:flex;align-items:center;gap:12px;font-size:15px;line-height:1.4}
 .hflist b{color:var(--ink)}
 .openweb{display:block;text-align:center;text-decoration:none;margin:12px 0 4px}
+
+/* full page reading: the page owns the screen, menus float over it when tapped */
+body.full #reader main{padding:calc(2px + env(safe-area-inset-top,0px)) max(2px,env(safe-area-inset-right,0px)) calc(2px + env(safe-area-inset-bottom,0px)) max(2px,env(safe-area-inset-left,0px))!important;max-width:none}
+body.full #reader .rjump{display:none!important}
+body.full #reader .rbar{position:fixed;left:0;right:0;top:0;z-index:25;box-shadow:0 4px 16px rgba(0,0,0,.25)}
+body.full #reader .pbar{box-shadow:0 -4px 16px rgba(0,0,0,.18)}
+body.full .frame-in,body.full.immersive .frame-in{min-height:0!important}
+body.full #reader .mushaf{min-height:calc(100dvh - 4px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px))}
+body.full #reader .frame-in{padding:4px 8px 2px}
+body.full #reader .phead{padding:2px 46px 2px 46px!important;font-size:13px}
+body.full .pfoot{padding-top:0;min-height:18px}
+body.full .pfoot .pn{font-size:13px}
+.mpage{margin-inline:auto}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 @media (max-width:480px){#cam{width:140px}}
 </style>
@@ -597,18 +610,18 @@ body.immersive #reader .phead{padding-left:50px}
 <div class="sheet" id="hfSheet" hidden role="dialog" aria-label="Hands-free reading">
   <div class="wrap gut">
     <div class="grab"></div>
-    <h2>Hands-free reading</h2>
+    <h2>Turn pages with your hand</h2>
     <ul class="hflist">
-      <li><span class="hfic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 11V6a2 2 0 0 0-4 0v5M14 10V4a2 2 0 0 0-4 0v6M10 10.5V6a2 2 0 0 0-4 0v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.9-6-2.4l-3.6-3.6a2 2 0 0 1 2.8-2.8L7 15"/></svg></span><span><b>Wave your hand</b> sideways to turn the page</span></li>
-      <li><span class="hfic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></span><span><b>Blink twice</b> for the next page</span></li>
-      <li><span class="hfic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="7" y="3" width="10" height="18" rx="2" transform="rotate(-15 12 12)"/></svg></span><span><b>Tilt the phone</b> to the side to turn the page</span></li>
+      <li><span class="hfic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 11V6a2 2 0 0 0-4 0v5M14 10V4a2 2 0 0 0-4 0v6M10 10.5V6a2 2 0 0 0-4 0v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.9-6-2.4l-3.6-3.6a2 2 0 0 1 2.8-2.8L7 15"/></svg></span><span><b>Swipe your hand</b> across the camera to turn the page</span></li>
+      <li><span class="hfic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></span><span>Or <b>hold your hand</b> at one side for a moment: right for the next page, left to go back</span></li>
+      <li><span class="hfic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span><span>Keep your hand about an arm's length from the phone, in good light</span></li>
     </ul>
     <div class="privacy">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
       <p><b>Private:</b> your face is never shown. The camera picture stays on your phone and is never recorded or sent anywhere.</p>
     </div>
     <p class="hfsub">Tap the hand button again any time to switch gestures off.</p>
-    <button class="gobtn" id="hfGo">Turn on gestures</button>
+    <button class="gobtn" id="hfGo">Turn on hand gestures</button>
     <button class="ctl" id="hfClose" style="width:100%;margin-top:8px">Not now</button>
     <div hidden>
       <div id="hfLive"><canvas id="liveCam" width="160" height="120"></canvas></div>
@@ -752,7 +765,7 @@ applyTheme(); syncSwipe();
 
 // tap the page to hide or show the menus, like a printed page
 let hintShown = store.get("tapHint", false);
-let lastTap=0, tapTimer=0;
+let lastTap=0, tapTimer=0, menuTimer=0;
 $("pageBox").addEventListener("click", e=>{
   if(e.target.closest("button,a,select")) return;
   if(performance.now() - justDragged < 350) return;
@@ -767,7 +780,8 @@ $("pageBox").addEventListener("click", e=>{
   lastTap = now;
   tapTimer = setTimeout(()=>{
     document.body.classList.toggle("immersive");
-    if(view==="mushaf") fitMushaf();
+    clearTimeout(menuTimer);
+    if(view==="mushaf" && !document.body.classList.contains("immersive")) menuTimer = setTimeout(()=>{ if(isReading() && view==="mushaf" && $("sheet").hidden && $("hfSheet").hidden) document.body.classList.add("immersive"); }, 5000);
   }, 300);
 });
 const openSheet = ()=>{ $("scrim").hidden=false; $("sheet").hidden=false; };
@@ -1204,8 +1218,8 @@ function showScreen(){
   const reading = location.hash === "#read";
   $("reader").hidden = !reading; $("home").hidden = reading;
   if(!reading){ updateLastRead(); if(tab==="saved") renderList(); if(anyOn() || running) stopHandsFree(true); document.body.classList.remove("immersive"); }
-  if(reading) setTimeout(autoStartHF, 400);
-  if(reading && !hintShown){ hintShown=true; store.set("tapHint",true); setTimeout(()=>toast("Tap the page for full screen · pinch to zoom"),600); }
+  if(reading){ setTimeout(autoStartHF, 400); if(view==="mushaf") document.body.classList.add("immersive"); }
+  if(reading && !hintShown){ hintShown=true; store.set("tapHint",true); setTimeout(()=>toast("Tap the page for the menu"),600); }
   window.scrollTo(0,0);
 }
 window.addEventListener("hashchange", ()=>{ showScreen(); if(isReading()) render(page); });
@@ -1320,10 +1334,21 @@ async function fitMushaf(){
   pageEl.style.width = (avail * zoom) + "px";
   const cs = getComputedStyle(pageEl);
   const inner = pageEl.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
-  pageEl.style.fontSize = Math.min(80*zoom, 100 * (inner*0.97) / maxW) + "px";
-  const bars = ["rbar","rjump","pbar"].map(c=>{ const e=document.querySelector("."+c); return e && getComputedStyle(e).display!=="none" ? e.offsetHeight : 0; });
-  const top = document.body.classList.contains("immersive") ? 70 : bars.reduce((a,b)=>a+b,0) + 40;
-  pageEl.style.minHeight = zoom > 1.01 ? "" : Math.max(0, innerHeight - top) + "px";
+  // fit the whole page on the screen: as wide as the screen allows, but never taller than it
+  const box = $("pageBox"), head = box.querySelector(".phead"), foot = box.querySelector(".pfoot");
+  const csb = getComputedStyle(box);
+  const chrome = (head?head.offsetHeight:0) + (foot?foot.offsetHeight:0) + parseFloat(csb.paddingTop) + parseFloat(csb.paddingBottom) + 10;
+  const availH = window.innerHeight - chrome;
+  const lines = pageEl.classList.contains("opening") ? 11 : 15;
+  const byWidth = 100 * (inner*0.97) / maxW, byHeight = availH / (lines * 1.85 + 0.8);
+  const portrait = window.innerHeight >= window.innerWidth;     // landscape keeps big lines and scrolls
+  const fontPx = (zoom > 1.01 || !portrait) ? Math.min(80*zoom, byWidth) : Math.min(80, byWidth, byHeight);
+  pageEl.style.fontSize = fontPx + "px";
+  if(zoom <= 1.01 && portrait && byHeight < byWidth){
+    const pad = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight);
+    pageEl.style.width = Math.min(avail, maxW * fontPx / 100 / 0.97 + pad) + "px";
+  }
+  pageEl.style.minHeight = (zoom > 1.01 || !portrait) ? "" : Math.max(0, availH) + "px";
 }
 let fitTimer; window.addEventListener("resize", ()=>{ clearTimeout(fitTimer); fitTimer=setTimeout(()=>{ if(isReading() && view==="mushaf") fitMushaf(); },120); });
 // when the phone turns: cancel a half-finished page turn, re-fit the page, and let tilt control settle
@@ -1635,26 +1660,24 @@ function syncHF(){
 const closeHF = ()=>{ $("hfSheet").hidden=true; $("scrim").hidden=true; };
 async function startGestures(quiet){
   gesturesOn = true; store.set("gesturesOn", true);
-  await startTilt(true);                    // first, while the tap still counts (iPhone asks permission)
   await startCam();
-  if(hfOn.hand) await startEyes(true);
   syncHF();
   if(!gesturesLive()){ gesturesOn = false; store.set("gesturesOn", false); return; }
-  if(!quiet) toast(hfOn.hand ? "Gestures on: wave, blink or tilt" : "Tilt on");
+  if(!quiet) toast("Hand gestures on");
 }
 function stopGestures(){
   stopCam(); stopEyes(); stopTilt();
   gesturesOn = false; store.set("gesturesOn", false);
-  syncHF(); toast("Gestures off");
+  syncHF(); toast("Hand gestures off");
 }
 function gestureButton(){
   if(gesturesLive()) return stopGestures();
-  if(!store.get("gestIntro", false)){ $("hfSheet").hidden=false; $("scrim").hidden=false; return; }
+  if(!store.get("gestIntro2", false)){ $("hfSheet").hidden=false; $("scrim").hidden=false; return; }
   startGestures();
 }
 $("camBtn").onclick = gestureButton;
 $("camFloat").onclick = gestureButton;
-$("hfGo").onclick = ()=>{ store.set("gestIntro", true); closeHF(); startGestures(); };
+$("hfGo").onclick = ()=>{ store.set("gestIntro2", true); closeHF(); startGestures(); };
 $("hfClose").onclick = closeHF;
 $("camStop").onclick = ()=> stopGestures();
 $("hfX").onclick = ()=>{ autoSec = 0; store.set("autoSec2", 0); $("autoSec").value = "0"; stopAuto(); syncHF(); toast("Automatic page turns off"); };
@@ -1840,16 +1863,21 @@ function loop(){
   requestAnimationFrame(loop);
 }
 
-// Hand control. The page starts curling as soon as an open hand moves sideways, follows the hand,
-// and turns once the hand has gone far enough (or flicks quickly). Pull back to cancel.
+// Hand control: two simple ways to turn a page.
+//  1. Swipe: as the hand moves sideways the page curls with it, and turns once the hand has gone far enough
+//     (or flicks). Pull back to cancel. Bringing the hand back afterwards is ignored.
+//  2. Hold: keep the hand still near one side of the camera; the page curls as a countdown, then turns.
+// Any hand shape works, palm or fist, so it keeps working while the hand is moving fast.
 let hdrag=null, hx=null, hAnchor=null, hLastSeen=0, hLastX=null, hLastT=0, hVel=0;
-let hArmed=true, hStillSince=0, hBlockDir=0, hBlockUntil=0;   // ignore the hand coming back after a swipe
-const H_START = 0.045, H_FULL = 0.30, H_DONE = 0.20;
+let hArmed=true, hStillSince=0, hBlockDir=0, hBlockUntil=0;
+let hHoldSide=0, hHoldSince=0, hHoldDone=false, hNow=0, hNeedCenter=0;
+const H_START = 0.045, H_FULL = 0.28, H_DONE = 0.18, HOLD_EDGE = 0.30, HOLD_MS = 650;
 function handFollow(now){
-  // between camera frames, keep the curl moving smoothly towards where the hand is heading
   if(!hdrag || !flip || !flip.ready || flip.isNext !== hdrag.isNext || hdrag.done) return;
-  const ahead = Math.max(0, Math.min(1, ((hx - hdrag.x0) * hdrag.dir + hVel*hdrag.dir*0.04) / H_FULL));
-  const target = flip.f0 + (flip.f1 - flip.f0) * ahead;
+  let prog;
+  if(hdrag.hold) prog = Math.min(1, (now - hHoldSince) / HOLD_MS) * 0.45;
+  else prog = Math.max(0, Math.min(1, ((hx - hdrag.x0) * hdrag.dir + hVel*hdrag.dir*0.04) / H_FULL));
+  const target = flip.f0 + (flip.f1 - flip.f0) * prog;
   drawFlip(flip, flip.f + (target - flip.f) * 0.35);
 }
 async function finishHandDrag(go){
@@ -1857,78 +1885,100 @@ async function finishHandDrag(go){
   hd.done = true;
   try{ await hd.prep; }catch{}
   if(flip){
-    if(go && flip.isNext === hd.isNext){ turning = true; await animateFlip(flip, true, 340); endFlip(flip, true); turning = false; }
+    if(go && flip.isNext === hd.isNext){ turning = true; await animateFlip(flip, true, 320); endFlip(flip, true); turning = false; }
     else await cancelFlip();
   }
-  lastSwipe = performance.now(); hdrag = null; hAnchor = null; hArmed = false; hStillSince = 0;
-  if(go){ hBlockDir = -hd.dir; hBlockUntil = performance.now() + 1200; }
+  lastSwipe = hNow; hdrag = null; hAnchor = null; hArmed = false; hStillSince = 0;
+  if(go){ hBlockDir = hd.hold ? -hd.side : -hd.dir; hBlockUntil = hNow + 1200; }
+  // a hand that ends up resting at the side must come back to the middle before "hold" can turn again
+  if(hx !== null){
+    hHoldSide = hx > 1-HOLD_EDGE ? 1 : (hx < HOLD_EDGE ? -1 : 0); hHoldDone = go && hHoldSide !== 0; hHoldSince = hNow;
+    // after a turn the hand usually drifts back to the middle: ignore that movement until it gets there
+    if(go && Math.abs(hx - 0.5) > 0.08) hNeedCenter = hx > 0.5 ? -1 : 1;
+  }
   setState(go ? (hd.isNext ? "Next page" : "Previous page") : "Ready", "active");
 }
+function beginTurn(isNext, now, extra){
+  const target = page + (isNext ? 1 : -1);
+  if(target < 1 || target > 604 || turning || flip || !isReading()) return false;
+  hdrag = Object.assign({isNext, max:0, done:false, movedAt:now}, extra);
+  hdrag.prep = prepareFlip(isNext).catch(()=>null);
+  return true;
+}
 function handStep(res, now, dt){
+  hNow = now;
   const lm = res && res.landmarks && res.landmarks[0];
   if(!lm){
-    fistStart=0; smoothY=null;
-    if(hdrag && now - hLastSeen > 250) finishHandDrag(hdrag.max > 0.13);   // a fast swipe often leaves the frame: finish it
-    if(!hdrag){ hx=null; hLastX=null; hAnchor=null; hVel=0; setState(paused?"Paused · fist to resume":"Show your hand", paused?"paused":"active"); }
+    hHoldSide = 0; hHoldDone = false;
+    if(hdrag && now - hLastSeen > 250){
+      if(hdrag.hold) finishHandDrag(false);
+      else finishHandDrag(hdrag.max > 0.11);          // a fast swipe often leaves the frame: finish it
+    }
+    if(!hdrag){ hx=null; hLastX=null; hAnchor=null; hVel=0; hArmed = true; hNeedCenter = 0; setState("Show your hand", "active"); }
     return;
   }
   hLastSeen = now; lastHandSeen = now;
   drawHand(lm);
-  const up=fingersUp(lm), pts=[0,5,9,13,17].map(i=>lm[i]);
-  const rawX=1-pts.reduce((s,p)=>s+p.x,0)/5, cy=pts.reduce((s,p)=>s+p.y,0)/5;
-  hx = hx===null ? rawX : hx*0.35 + rawX*0.65;
-  if(hLastX!==null){ const v=(hx-hLastX)/Math.max(8, now-hLastT)*1000; hVel = hVel*0.45 + v*0.55; }
+  // palm centre, mirrored so left and right match what you see
+  const pts=[0,5,9,13,17].map(i=>lm[i]);
+  const rawX = 1 - pts.reduce((s,p)=>s+p.x,0)/5;
+  hx = hx===null ? rawX : hx*0.3 + rawX*0.7;
+  if(hLastX!==null){ const v=(hx-hLastX)/Math.max(8, now-hLastT)*1000; hVel = hVel*0.4 + v*0.6; }
   hLastX=hx; hLastT=now;
-
-  if(up===0 && !hdrag){
-    if(!fistStart) fistStart=now;
-    const held=now-fistStart;
-    if(held>900){ paused=!paused; fistStart=now+1500; toast(paused?"⏸ Paused":"▶ Resumed"); }
-    else if(held>0) setState("Hold fist…", paused?"paused":"active");
-    return;
-  }
-  fistStart=0;
-  if(paused){ setState("Paused · fist to resume","paused"); return; }
-  if(up<3 && !hdrag){ setState("Open your hand","active"); hAnchor=null; return; }
-
   if(hAnchor===null) hAnchor = hx;
-  if(!hdrag){
-    if(Math.abs(hVel) < 0.3){ if(!hStillSince) hStillSince = now; } else hStillSince = 0;
-    if(!hArmed && hStillSince && now - hStillSince > 140) hArmed = true;  // a short pause is enough to swipe again
-    if(Math.abs(hVel) < 0.25 || !hArmed) hAnchor = hAnchor*0.6 + hx*0.4;  // hand resting or returning: follow it
-    const d = hx - hAnchor;
-    const returning = (d>0 ? 1 : -1) === hBlockDir && now < hBlockUntil;
-    if(returning) hAnchor = hx;
-    if(hArmed && !returning && Math.abs(d) > H_START && Math.abs(hVel) > 0.3 && !turning && !flip && now - lastSwipe > 300 && isReading()){
-      const isNext = (d>0) === (swipeDir==="right");
-      const target = page + (isNext ? 1 : -1);
-      if(target >= 1 && target <= 604){
-        hdrag = {isNext, x0:hAnchor, dir: d>0 ? 1 : -1, max:0, done:false, movedAt:now};
-        hdrag.prep = prepareFlip(isNext).catch(()=>null);
-        setState(isNext ? "Turning…" : "Going back…", "active");
-      }else hAnchor = hx;
-    }
-  }
+
+  // ---- a turn in progress ----
   if(hdrag){
     if(hdrag.done) return;
+    if(hdrag.hold){
+      const stillThere = (hdrag.side > 0 ? hx > 1-HOLD_EDGE-0.05 : hx < HOLD_EDGE+0.05) && Math.abs(hVel) < 0.9;
+      if(!stillThere){ finishHandDrag(false); return; }
+      if(flip && flip.ready && flip.isNext === hdrag.isNext){
+        const prog = Math.min(1, (now - hHoldSince) / HOLD_MS);
+        drawFlip(flip, flip.f0 + (flip.f1 - flip.f0) * prog * 0.45);
+        if(prog >= 1) finishHandDrag(true);
+      }
+      return;
+    }
     const d = (hx - hdrag.x0) * hdrag.dir;
     hdrag.max = Math.max(hdrag.max, d);
+    if(Math.abs(hVel) > 0.2) hdrag.movedAt = now;
     if(flip && flip.ready && flip.isNext === hdrag.isNext){
       drawFlip(flip, flip.f0 + (flip.f1 - flip.f0) * Math.max(0, Math.min(1, d / H_FULL)));
-      if(Math.abs(hVel) > 0.25) hdrag.movedAt = now;
-      if(d > H_DONE || (d > 0.11 && hVel*hdrag.dir > 1.1)) finishHandDrag(true);
-      else if(d < 0.01 || d < hdrag.max - 0.08) finishHandDrag(false);           // hand pulled back: cancel
-      else if(now - (hdrag.movedAt || now) > 550) finishHandDrag(d > 0.13);      // hand stopped half way: settle
+      if(d > H_DONE || (d > 0.10 && hVel*hdrag.dir > 1.0)) finishHandDrag(true);
+      else if(d < -0.01 || d < hdrag.max - 0.08) finishHandDrag(false);
+      else if(now - hdrag.movedAt > 500) finishHandDrag(d > 0.12);
     }
     return;
   }
 
-  // hand held still near the top or bottom of the camera: scroll
-  smoothY = smoothY===null ? cy : smoothY*.7+cy*.3;
-  if(Math.abs(hVel) < 0.3 && now-lastSwipe>500){
-    if(smoothY<0.34){ window.scrollBy(0,-(0.5+(0.34-smoothY)/0.34*1.8)*dt); setState("Scrolling up","active"); }
-    else if(smoothY>0.66){ window.scrollBy(0,(0.5+(smoothY-0.66)/0.34*1.8)*dt); setState("Scrolling down","active"); }
-    else setState("Ready · move your hand sideways","active");
+  // ---- waiting for a gesture ----
+  if(Math.abs(hVel) < 0.3){ if(!hStillSince) hStillSince = now; } else hStillSince = 0;
+  if(!hArmed && ((hStillSince && now - hStillSince > 120) || now - lastSwipe > 900)) hArmed = true;
+  if(Math.abs(hVel) < 0.25 || !hArmed) hAnchor = hAnchor*0.6 + hx*0.4;
+  const d = hx - hAnchor;
+  const towards = d>0 ? 1 : -1;
+  if(hNeedCenter && Math.abs(hx - 0.5) < 0.1 && Math.abs(hVel) < 0.35) hNeedCenter = 0;   // back in the middle and settled
+  const returning = (towards === hBlockDir && now < hBlockUntil) || (hHoldDone && towards === -hHoldSide) || (hNeedCenter !== 0 && towards === hNeedCenter);
+  if(returning) hAnchor = hx;
+
+  // swipe
+  if(hArmed && !returning && Math.abs(d) > H_START && Math.abs(hVel) > 0.3 && now - lastSwipe > 300){
+    const isNext = (d>0) === (swipeDir==="right");
+    if(beginTurn(isNext, now, {x0:hAnchor, dir: d>0 ? 1 : -1})){ setState(isNext ? "Turning…" : "Going back…", "active"); return; }
+    hAnchor = hx;
+  }
+
+  // hold at one side (not while the hand is still on its way back after a turn)
+  if(hNeedCenter){ setState("Move your hand back to the middle", "active"); return; }
+  const side = hx > 1-HOLD_EDGE ? 1 : (hx < HOLD_EDGE ? -1 : 0);
+  if(side === 0){ hHoldSide = 0; hHoldDone = false; setState("Ready · swipe or hold at a side", "active"); return; }
+  if(side !== hHoldSide){ hHoldSide = side; hHoldSince = now; hHoldDone = false; }
+  if(hHoldDone){ setState("Move your hand back to the middle", "active"); return; }
+  if(Math.abs(hVel) < 0.5 && now - hHoldSince > 150 && now - lastSwipe > 600){
+    const isNext = (side > 0) === (swipeDir==="right");
+    hHoldSince = now;
+    if(beginTurn(isNext, now, {hold:true, side})) setState(isNext ? "Hold… next page" : "Hold… previous page", "active");
   }
 }
 
