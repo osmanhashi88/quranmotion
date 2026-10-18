@@ -833,6 +833,7 @@ const applySize = ()=>{
 const MIN_SIZE = 20, MAX_SIZE = 60;
 function zoomTo(sz, save=true){
   sz = Math.max(MIN_SIZE, Math.min(MAX_SIZE, Math.round(sz)));
+  if(view==="mushaf") sz = Math.max(30, sz);      // the full page never gets smaller than the screen
   if(sz === arSize) return;
   const ratio = (window.scrollY + innerHeight/2) / Math.max(1, document.body.scrollHeight);
   arSize = sz; applySize(); if(isReading() && view==="mushaf") fitMushaf();
@@ -1514,7 +1515,7 @@ async function fitMushaf(){
   const PADX = opening ? 0.2 : 0.05, PADY = opening ? 1.0 : 0.15;
   pageEl.style.padding = `${PADY}em ${PADX}em`;
   const avail = wrap.clientWidth;
-  const zoom = arSize/30;
+  const zoom = Math.max(1, arSize/30);
   const portrait = window.innerHeight >= window.innerWidth;
   // landscape: a comfortable book-width page that scrolls, instead of giant text
   const W = (portrait ? avail : Math.min(avail, 720)) * zoom;
