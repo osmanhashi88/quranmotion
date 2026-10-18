@@ -463,6 +463,54 @@ body.full .pfoot .pn{font-size:13px}
 .mpage{margin-inline:auto}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 @media (max-width:480px){#cam{width:140px}}
+
+/* ===== Beautiful mushaf page: framed, decorated, fitted ===== */
+body[data-rt=paper]{--pbg:#FBF4E2;--pbg2:#F3E6C3;--pink:#1A140B;--pframe:#B8924A;--pmark:#8A6421;--psoft:#EADCB4;--pvig:#EEDDB2}
+body[data-rt=white]{--pbg:#FFFFFF;--pbg2:#F6F2E5;--pink:#0B0B0B;--pframe:#C9B37C;--pmark:#0F6A57;--psoft:#EEE8D6;--pvig:#F4F1E8}
+body[data-rt=night]{--pbg:#0E0E0C;--pbg2:#1B1914;--pink:#ECE6D6;--pframe:#6E5D38;--pmark:#D2AE62;--psoft:#26221A;--pvig:#060606}
+#reader,body.full #reader .mushaf{background:radial-gradient(130% 95% at 50% 42%,var(--pbg) 60%,var(--pvig) 100%)}
+.mpage{position:relative;z-index:0}
+.mframe{position:absolute;inset:0;pointer-events:none;border:1.6px solid var(--pframe);border-radius:2px}
+.mframe::before{content:"";position:absolute;inset:3px;border:.8px solid var(--pframe);opacity:.85}
+.mframe::after{content:"";position:absolute;inset:-4px;background:var(--pmark);
+  -webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cg %3E%3Cpath d='M6 1.2 L10.8 6 L6 10.8 L1.2 6Z'/%3E%3Cpath d='M11.5 6 C16 3.2 22 4.6 31 6 C22 7.4 16 8.8 11.5 6Z'/%3E%3Cpath d='M6 11.5 C3.2 16 4.6 22 6 31 C7.4 22 8.8 16 6 11.5Z'/%3E%3Ccircle cx='13.6' cy='13.6' r='2.1'/%3E%3Ccircle cx='6' cy='6' r='1.6' fill='black' fill-opacity='0'/%3E%3C/g%3E%3C/svg%3E"), url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cg transform='translate%2832 0%29 scale%28-1 1%29'%3E%3Cpath d='M6 1.2 L10.8 6 L6 10.8 L1.2 6Z'/%3E%3Cpath d='M11.5 6 C16 3.2 22 4.6 31 6 C22 7.4 16 8.8 11.5 6Z'/%3E%3Cpath d='M6 11.5 C3.2 16 4.6 22 6 31 C7.4 22 8.8 16 6 11.5Z'/%3E%3Ccircle cx='13.6' cy='13.6' r='2.1'/%3E%3Ccircle cx='6' cy='6' r='1.6' fill='black' fill-opacity='0'/%3E%3C/g%3E%3C/svg%3E"), url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cg transform='translate%280 32%29 scale%281 -1%29'%3E%3Cpath d='M6 1.2 L10.8 6 L6 10.8 L1.2 6Z'/%3E%3Cpath d='M11.5 6 C16 3.2 22 4.6 31 6 C22 7.4 16 8.8 11.5 6Z'/%3E%3Cpath d='M6 11.5 C3.2 16 4.6 22 6 31 C7.4 22 8.8 16 6 11.5Z'/%3E%3Ccircle cx='13.6' cy='13.6' r='2.1'/%3E%3Ccircle cx='6' cy='6' r='1.6' fill='black' fill-opacity='0'/%3E%3C/g%3E%3C/svg%3E"), url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cg transform='translate%2832 32%29 scale%28-1 -1%29'%3E%3Cpath d='M6 1.2 L10.8 6 L6 10.8 L1.2 6Z'/%3E%3Cpath d='M11.5 6 C16 3.2 22 4.6 31 6 C22 7.4 16 8.8 11.5 6Z'/%3E%3Cpath d='M6 11.5 C3.2 16 4.6 22 6 31 C7.4 22 8.8 16 6 11.5Z'/%3E%3Ccircle cx='13.6' cy='13.6' r='2.1'/%3E%3Ccircle cx='6' cy='6' r='1.6' fill='black' fill-opacity='0'/%3E%3C/g%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cg %3E%3Cpath d='M6 1.2 L10.8 6 L6 10.8 L1.2 6Z'/%3E%3Cpath d='M11.5 6 C16 3.2 22 4.6 31 6 C22 7.4 16 8.8 11.5 6Z'/%3E%3Cpath d='M6 11.5 C3.2 16 4.6 22 6 31 C7.4 22 8.8 16 6 11.5Z'/%3E%3Ccircle cx='13.6' cy='13.6' r='2.1'/%3E%3Ccircle cx='6' cy='6' r='1.6' fill='black' fill-opacity='0'/%3E%3C/g%3E%3C/svg%3E"), url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cg transform='translate%2832 0%29 scale%28-1 1%29'%3E%3Cpath d='M6 1.2 L10.8 6 L6 10.8 L1.2 6Z'/%3E%3Cpath d='M11.5 6 C16 3.2 22 4.6 31 6 C22 7.4 16 8.8 11.5 6Z'/%3E%3Cpath d='M6 11.5 C3.2 16 4.6 22 6 31 C7.4 22 8.8 16 6 11.5Z'/%3E%3Ccircle cx='13.6' cy='13.6' r='2.1'/%3E%3Ccircle cx='6' cy='6' r='1.6' fill='black' fill-opacity='0'/%3E%3C/g%3E%3C/svg%3E"), url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cg transform='translate%280 32%29 scale%281 -1%29'%3E%3Cpath d='M6 1.2 L10.8 6 L6 10.8 L1.2 6Z'/%3E%3Cpath d='M11.5 6 C16 3.2 22 4.6 31 6 C22 7.4 16 8.8 11.5 6Z'/%3E%3Cpath d='M6 11.5 C3.2 16 4.6 22 6 31 C7.4 22 8.8 16 6 11.5Z'/%3E%3Ccircle cx='13.6' cy='13.6' r='2.1'/%3E%3Ccircle cx='6' cy='6' r='1.6' fill='black' fill-opacity='0'/%3E%3C/g%3E%3C/svg%3E"), url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cg transform='translate%2832 32%29 scale%28-1 -1%29'%3E%3Cpath d='M6 1.2 L10.8 6 L6 10.8 L1.2 6Z'/%3E%3Cpath d='M11.5 6 C16 3.2 22 4.6 31 6 C22 7.4 16 8.8 11.5 6Z'/%3E%3Cpath d='M6 11.5 C3.2 16 4.6 22 6 31 C7.4 22 8.8 16 6 11.5Z'/%3E%3Ccircle cx='13.6' cy='13.6' r='2.1'/%3E%3Ccircle cx='6' cy='6' r='1.6' fill='black' fill-opacity='0'/%3E%3C/g%3E%3C/svg%3E");
+  -webkit-mask-position:top left, top right, bottom left, bottom right;mask-position:top left, top right, bottom left, bottom right;-webkit-mask-size:30px 30px;mask-size:30px 30px;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat}
+.mline .mark{color:var(--pmark)}
+/* surah title cartouche */
+.mline.tl{line-height:1.85}
+.mtitle{position:relative;width:100%;height:1.62em;border:0!important;box-shadow:none!important;background:none!important;display:flex;align-items:center;
+  justify-content:space-between;padding:0 2.2em;line-height:1;font-size:1em;direction:rtl;border-radius:0}
+.mtitle svg.cart{position:absolute;inset:0;width:100%;height:100%;overflow:visible;z-index:-1}
+.cart .o{fill:var(--pbg2);stroke:var(--pframe);stroke-width:1.4px;vector-effect:non-scaling-stroke}
+.cart .i,.cart .ln2{fill:none;stroke:var(--pframe);stroke-width:.8px;vector-effect:non-scaling-stroke}
+.cart .ros ellipse{fill:none;stroke:var(--pmark);stroke-width:.9px;vector-effect:non-scaling-stroke}
+.cart .ros .dot{fill:var(--pmark)}
+.mt-name{font-size:.86em;color:var(--pink);white-space:nowrap}
+.mt-side{font-family:var(--arUi);font-size:.42em;color:var(--pmark);white-space:nowrap;-webkit-text-stroke:0;min-width:5.4em;text-align:center;line-height:1}
+.mbas{color:var(--pink)}
+/* opening pages (Al-Faatiha, start of Al-Baqara): a decorated medallion */
+.mpage.opening{border:0!important;box-shadow:none!important;margin-block:0!important;justify-content:center;gap:0}
+.mpage.opening .mline{line-height:2.35}
+.mpage.opening::before{content:"";position:absolute;inset:.95em .8em;z-index:-1;border:1.4px solid var(--pframe);
+  border-radius:50% / 15%;background:radial-gradient(closest-side,var(--pbg) 70%,var(--pbg2));box-shadow:0 0 0 .32em var(--pbg2),0 0 0 calc(.32em + 1px) var(--pframe)}
+.mpage.opening::after{content:"";position:absolute;inset:1.35em 1.2em;z-index:-1;border:.8px solid var(--pframe);border-radius:50% / 14%;opacity:.8}
+/* header: surah and juz, clear of the floating buttons */
+body.full #reader .phead{min-height:42px;align-items:center;padding:0 54px!important;font-size:12.5px;letter-spacing:.05em;opacity:1;color:var(--pmark);font-weight:500}
+body.full #reader .phead span{display:flex;align-items:center;gap:7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+body.full #reader .phead span::before{content:"";width:5px;height:5px;background:var(--pframe);transform:rotate(45deg);flex:none}
+/* footer: page number in a small medallion */
+body.full .pfoot{min-height:30px;padding:3px 0 2px;gap:10px;margin-top:0}
+body.full .pfoot::before,body.full .pfoot::after{content:"";width:min(22vw,96px);height:1px;background:linear-gradient(90deg,transparent,var(--pframe))}
+body.full .pfoot::after{transform:scaleX(-1)}
+body.full .pfoot .pn{font-family:var(--ui);font-size:12.5px;opacity:1;color:var(--pmark);min-width:40px;height:22px;padding:0 10px;display:grid;place-items:center;
+  border:1px solid var(--pframe);border-radius:11px;box-shadow:inset 0 0 0 2px var(--pbg),inset 0 0 0 2.8px var(--psoft);font-variant-numeric:tabular-nums;font-weight:600}
+/* floating buttons: quiet, in the page colours */
+#homeFloat{width:36px;height:36px;top:calc(3px + env(safe-area-inset-top,0px));background:color-mix(in srgb,var(--pbg2) 90%,transparent);color:var(--pmark);
+  border:1px solid var(--pframe);box-shadow:0 1px 4px rgba(0,0,0,.12)}
+#homeFloat svg{width:18px;height:18px}
+#camFloat{width:36px;height:36px;top:calc(3px + env(safe-area-inset-top,0px))}
+body.full #reader .frame-in{padding:0 8px 2px}
+body.full #reader main{padding-bottom:calc(2px + env(safe-area-inset-bottom,0px))!important}
 </style>
 </head>
 <body>
@@ -1303,7 +1351,10 @@ function buildMushafPage(p){
   lines.forEach(([ln, centred, items])=>{
     const row = el("div","mline" + (centred ? " c" : ""));
     items.forEach(it=>{
-      if(it[0]==="t"){ const S=SURAHS[it[1]-1]; const b=el("div","mtitle"); b.append(el("span",null,"سُورَةُ "+S.name)); row.classList.add("tl"); row.append(b); return; }
+      if(it[0]==="t"){ const S=SURAHS[it[1]-1]; const b=el("div","mtitle");
+        b.innerHTML = '<svg class="cart" aria-hidden="true"></svg>';
+        b.append(el("span","mt-side","ترتيبها "+arNum(S.number)), el("span","mt-name","سُورَةُ "+S.name), el("span","mt-side","آياتها "+arNum(S.numberOfAyahs)));
+        row.classList.add("tl"); row.append(b); return; }
       if(it[0]==="b"){ row.classList.add("c"); row.append(el("span","mbas",BASMALA_TEXT)); return; }
       const [s,a,w0,w1] = it; const all = wordsOf(s,a);
       const span = el("span","mw", all.slice(w0,w1).join(" "));
@@ -1314,6 +1365,7 @@ function buildMushafPage(p){
     });
     pageEl.append(row);
   });
+  pageEl.append(el("i","mframe"));
   wrap.append(pageEl);
   wrap.style.touchAction = arSize/30 > 1.01 ? "pan-x pan-y" : "pan-y";
   return wrap;
@@ -1328,27 +1380,45 @@ async function fitMushaf(){
   const ctx = fitCanvas.getContext("2d"); ctx.font = '100px "KFGQPC Hafs"';
   let maxW = 0;
   pageEl.querySelectorAll(".mline:not(.c):not(.tl)").forEach(r=>{ maxW = Math.max(maxW, ctx.measureText(r.textContent).width); });
-  if(!maxW) pageEl.querySelectorAll(".mline").forEach(r=>{ maxW = Math.max(maxW, ctx.measureText(r.textContent).width*1.04); });
+  if(!maxW) pageEl.querySelectorAll(".mline:not(.tl)").forEach(r=>{ maxW = Math.max(maxW, ctx.measureText(r.textContent).width*1.04); });
+  const opening = pageEl.classList.contains("opening");
+  // the frame's margins are in em, so they grow and shrink with the text
+  const PADX = opening ? 1.4 : 0.62, PADY = opening ? 1.9 : 0.5;
+  pageEl.style.padding = `${PADY}em ${PADX}em`;
   const avail = wrap.clientWidth;
   const zoom = arSize/30;
-  pageEl.style.width = (avail * zoom) + "px";
-  const cs = getComputedStyle(pageEl);
-  const inner = pageEl.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+  const portrait = window.innerHeight >= window.innerWidth;
+  // landscape: a comfortable book-width page that scrolls, instead of giant text
+  const W = (portrait ? avail : Math.min(avail, 720)) * zoom;
+  pageEl.style.width = W + "px";
   // fit the whole page on the screen: as wide as the screen allows, but never taller than it
   const box = $("pageBox"), head = box.querySelector(".phead"), foot = box.querySelector(".pfoot");
   const csb = getComputedStyle(box);
-  const chrome = (head?head.offsetHeight:0) + (foot?foot.offsetHeight:0) + parseFloat(csb.paddingTop) + parseFloat(csb.paddingBottom) + 10;
+  const chrome = (head?head.offsetHeight:0) + (foot?foot.offsetHeight:0) + parseFloat(csb.paddingTop) + parseFloat(csb.paddingBottom) + 8;
   const availH = window.innerHeight - chrome;
-  const lines = pageEl.classList.contains("opening") ? 11 : 15;
-  const byWidth = 100 * (inner*0.97) / maxW, byHeight = availH / (lines * 1.85 + 0.8);
-  const portrait = window.innerHeight >= window.innerWidth;     // landscape keeps big lines and scrolls
-  const fontPx = (zoom > 1.01 || !portrait) ? Math.min(80*zoom, byWidth) : Math.min(80, byWidth, byHeight);
+  const k = maxW/100, LH = opening ? 2.35 : 1.85;
+  const lines = opening ? pageEl.querySelectorAll(".mline").length + 0.4 : 15;
+  const byWidth = 0.97*W / (k + 2*PADX*0.97);
+  const byHeight = availH / (lines*LH + 2*PADY + 0.25);
+  const fontPx = (zoom > 1.01 || !portrait) ? Math.min(60*zoom, byWidth) : Math.min(60, byWidth, byHeight);
   pageEl.style.fontSize = fontPx + "px";
   if(zoom <= 1.01 && portrait && byHeight < byWidth){
-    const pad = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight);
-    pageEl.style.width = Math.min(avail, maxW * fontPx / 100 / 0.97 + pad) + "px";
+    pageEl.style.width = Math.min(avail, fontPx * (k/0.97 + 2*PADX)) + "px";
   }
   pageEl.style.minHeight = (zoom > 1.01 || !portrait) ? "" : Math.max(0, availH) + "px";
+  pageEl.querySelectorAll(".mtitle").forEach(drawCartouche);
+}
+// the decorated surah title: pointed ends, a double rule and two rosettes, drawn to fit its box exactly
+function drawCartouche(t){
+  const svg = t.querySelector("svg.cart"); if(!svg) return;
+  const w = t.clientWidth, h = t.clientHeight; if(!w || !h) return;
+  const V = 40, L = Math.max(120, w/h*V), E = L;
+  svg.setAttribute("viewBox", `0 0 ${L} ${V}`); svg.setAttribute("preserveAspectRatio","none");
+  const outer = `M22,3 H${E-22} C${E-12},3 ${E-8},13 ${E-1.5},20 C${E-8},27 ${E-12},37 ${E-22},37 H22 C12,37 8,27 1.5,20 C8,13 12,3 22,3Z`;
+  const inner = `M24,7.5 H${E-24} C${E-16},7.5 ${E-13},15 ${E-8},20 C${E-13},25 ${E-16},32.5 ${E-24},32.5 H24 C16,32.5 13,25 8,20 C13,15 16,7.5 24,7.5Z`;
+  const ros = x => `<g class="ros" transform="translate(${x} 20)">${[0,45,90,135].map(a=>`<ellipse rx="1.7" ry="6.4" transform="rotate(${a})"/>`).join("")}<circle r="2.1" class="dot"/></g>`;
+  const div = x => `<path class="ln2" d="M${x},7.5 V32.5"/>`;
+  svg.innerHTML = `<path class="o" d="${outer}"/><path class="i" d="${inner}"/>` + ros(30) + ros(E-30) + div(42) + div(E-42);
 }
 let fitTimer; window.addEventListener("resize", ()=>{ clearTimeout(fitTimer); fitTimer=setTimeout(()=>{ if(isReading() && view==="mushaf") fitMushaf(); },120); });
 // when the phone turns: cancel a half-finished page turn, re-fit the page, and let tilt control settle
