@@ -728,7 +728,7 @@ body.full:not(:has(#reader[hidden])) #micFloat{display:grid}
     <h2>Turn pages with your hand</h2>
     <ul class="hflist">
       <li><span class="hfic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 11V6a2 2 0 0 0-4 0v5M14 10V4a2 2 0 0 0-4 0v6M10 10.5V6a2 2 0 0 0-4 0v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.9-6-2.4l-3.6-3.6a2 2 0 0 1 2.8-2.8L7 15"/></svg></span><span><b>Swipe left or right</b> to turn the page. <b>Swipe up</b> to read on, <b>swipe down</b> to go back</span></li>
-      <li><span class="hfic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/></svg></span><span>Or tap the <b>microphone</b> and say <b>next page</b>, <b>back page</b>, <b>scroll up</b> or <b>scroll down</b></span></li>
+      <li><span class="hfic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/></svg></span><span>Or tap the <b>microphone</b> and say <b>next</b>, <b>back</b>, <b>up</b> or <b>down</b></span></li>
       <li><span class="hfic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></span><span>Or <b>hold your hand</b> at one side for a moment: right for the next page, left to go back</span></li>
       <li><span class="hfic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span><span>Keep your hand about an arm's length from the phone, in good light</span></li>
     </ul>
@@ -2188,7 +2188,7 @@ function readMove(kind){
   const step = Math.round(innerHeight * 0.6) * (kind === "down" ? 1 : -1);
   const before = window.scrollY || se.scrollTop || 0;
   const room = kind === "down" ? (se.scrollHeight - innerHeight - before) : before;
-  if(room <= 4) return kind === "down" ? "End of this page · say next page" : "Top of this page · say back page";
+  if(room <= 4) return kind === "down" ? "End of this page · say next" : "Top of this page · say back";
   window.scrollBy({top: step, behavior: "smooth"});
   // some browsers ignore smooth scrolling: make sure it moved
   setTimeout(()=>{ if(Math.abs((window.scrollY || se.scrollTop || 0) - before) < 2) window.scrollTo(0, before + step); }, 450);
@@ -2267,8 +2267,8 @@ function handStep(res, now, dt){
 const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
 let voiceOn = store.get("voiceOn", false), rec = null, recSession = 0, voiceLastAct = 0, voiceDone = new Map(), voiceRetry = 0, voiceRestartT = 0, voiceLastFinal = "", voiceLastFinalAt = 0;
 const VOICE_CMDS = [
-  [/\b(scroll|scrolls|scrolled|scrolling|school|skull|scrawl|scroll|roll|rolling|squirrel|go|move|page)\s?(down|done|dawn|town|don)\b|\bdown\b/, "down"],
-  [/\b(scroll|scrolls|scrolled|scrolling|school|skull|scrawl|roll|rolling|squirrel|go|move|page)\s?(up|op|app|upp|uh)\b|\bscroll\s?up|\bup\b/, "up"],
+  [/\b(scroll|scrolls|scrolled|scrolling|school|skull|scrawl|scroll|roll|rolling|squirrel|go|move|page)\s?(down|done|dawn|town|don)\b|\b(down|dawn|town|done|downs|darn)\b/, "down"],
+  [/\b(scroll|scrolls|scrolled|scrolling|school|skull|scrawl|roll|rolling|squirrel|go|move|page)\s?(up|op|app|upp|uh)\b|\bscroll\s?up|\b(up|op|app|hop|upp|ups|yup)\b/, "up"],
   [/\b(back|bak|pack|bag|black|bad|buck|beck)\s?(page|paige|pace|paid|pays|pages)|\b(go|going|turn|page)\s?back|\bback|\bprevious|\bprev\b|\bbefore\b|\blast page|\breturn/, "prev"],
   [/\b(next|nest|necks|nex|forward|neck page|text page)/, "next"],
 ];
@@ -2337,7 +2337,7 @@ function startVoice(fromTap){
     }
   };
   try{ r.start(); syncMic("wait"); }catch{ rec = null; syncMic(); }
-  if(fromTap && !store.get("voiceTip", false)){ store.set("voiceTip", true); setTimeout(()=>toast("Say: next page · back page · scroll up · scroll down"), 600); }
+  if(fromTap && !store.get("voiceTip", false)){ store.set("voiceTip", true); setTimeout(()=>toast("Say: next · back · up · down"), 600); }
 }
 function pauseVoice(){
   clearTimeout(voiceRestartT);
