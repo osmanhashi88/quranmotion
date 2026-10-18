@@ -523,6 +523,9 @@ body.full #reader .phead span{background:var(--pbg2);border:1px solid var(--pfra
 body.full #reader .phead span::before{display:none}
 body.full .pfoot::before,body.full .pfoot::after{display:none}
 body.full .pfoot .pn{box-shadow:none;background:var(--pbg2);border-color:var(--pframe)}
+.mpage:not(.opening) .mline:not(.c){word-spacing:-.11em}
+.mpage .mline{-webkit-text-stroke:.055em currentColor}
+.mpage .mline .mark{margin-inline:.08em;font-size:1.12em;line-height:0;-webkit-text-stroke:.01em currentColor}
 </style>
 </head>
 <body>
@@ -1391,8 +1394,10 @@ async function fitMushaf(){
   fitCanvas = fitCanvas || document.createElement("canvas");
   const ctx = fitCanvas.getContext("2d"); ctx.font = '100px "KFGQPC Hafs"';
   let maxW = 0;
-  pageEl.querySelectorAll(".mline:not(.c):not(.tl)").forEach(r=>{ maxW = Math.max(maxW, ctx.measureText(r.textContent).width); });
-  if(!maxW) pageEl.querySelectorAll(".mline:not(.tl)").forEach(r=>{ maxW = Math.max(maxW, ctx.measureText(r.textContent).width*1.04); });
+  // words sit close together (like a printed mushaf), so the letters can be bigger
+  const WS = pageEl.classList.contains("opening") ? 0 : -0.11;
+  pageEl.querySelectorAll(".mline:not(.c):not(.tl)").forEach(r=>{ const t=r.textContent; maxW = Math.max(maxW, ctx.measureText(t).width + (t.split(" ").length-1)*WS*100 + r.querySelectorAll(".mark").length*32); });
+  if(!maxW) pageEl.querySelectorAll(".mline:not(.tl)").forEach(r=>{ maxW = Math.max(maxW, ctx.measureText(r.textContent).width*1.04 + r.querySelectorAll(".mark").length*32); });
   const opening = pageEl.classList.contains("opening");
   // the frame's margins are in em, so they grow and shrink with the text
   const PADX = opening ? 0.25 : 0.12, PADY = opening ? 1.0 : 0.15;
@@ -1406,7 +1411,7 @@ async function fitMushaf(){
   // fit the whole page on the screen: as wide as the screen allows, but never taller than it
   const box = $("pageBox"), head = box.querySelector(".phead"), foot = box.querySelector(".pfoot");
   const csb = getComputedStyle(box);
-  const chrome = (head?head.offsetHeight:0) + (foot?foot.offsetHeight:0) + parseFloat(csb.paddingTop) + parseFloat(csb.paddingBottom) + 8;
+  const chrome = (head?head.offsetHeight:0) + (foot?foot.offsetHeight:0) + parseFloat(csb.paddingTop) + parseFloat(csb.paddingBottom) + 12;
   const availH = window.innerHeight - chrome;
   const k = maxW/100, LH = opening ? 2.35 : 1.85;
   const lines = opening ? pageEl.querySelectorAll(".mline").length + 0.4 : 15;
