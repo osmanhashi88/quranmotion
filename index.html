@@ -1739,7 +1739,7 @@ async function loadHand(){
   if(landmarker) return;
   const {v, files} = await loadVision();
   const opts = d=>({ baseOptions:{ modelAssetPath:"https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task", delegate:d },
-    runningMode:"VIDEO", numHands:1, minHandDetectionConfidence:.6, minTrackingConfidence:.5 });
+    runningMode:"VIDEO", numHands:1, minHandDetectionConfidence:.5, minHandPresenceConfidence:.5, minTrackingConfidence:.4 });
   try{ landmarker = await v.HandLandmarker.createFromOptions(files, opts("GPU")); }
   catch{ landmarker = await v.HandLandmarker.createFromOptions(files, opts("CPU")); }
 }
@@ -1753,7 +1753,7 @@ async function loadFace(){
 }
 async function openCamera(){
   if(stream) return;
-  stream = await navigator.mediaDevices.getUserMedia({ video:{ facingMode:"user", width:{ideal:640}, height:{ideal:480} }, audio:false });
+  stream = await navigator.mediaDevices.getUserMedia({ video:{ facingMode:"user", width:{ideal:320}, height:{ideal:240}, frameRate:{ideal:30} }, audio:false });
   video.srcObject=stream; await video.play(); video.style.visibility = showCam ? "visible" : "hidden";
   canvas.width=video.videoWidth; canvas.height=video.videoHeight;
   running=true; requestAnimationFrame(loop);
@@ -1780,7 +1780,7 @@ async function startCam(){
   catch(err){ hfOn.hand=false; closeCameraIfIdle(); camFail(err,"hand"); }
   closeCameraIfIdle();
 }
-function stopCam(){ hfOn.hand=false; closeCameraIfIdle(); }
+function stopCam(){ hfOn.hand=false; if(hdrag){ hdrag.done=true; hdrag=null; cancelFlip(); } closeCameraIfIdle(); }
 async function startEyes(){
   $("cam").hidden=false; $("eyeRow").hidden=false; setEye("Loading eye tracker…");
   try{ await loadFace(); await openCamera(); eyeReset(); hfOn.eyes=true; }
@@ -1797,49 +1797,110 @@ const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
 function fingersUp(lm){ const w=lm[0]; let n=0;
   [[8,6],[12,10],[16,14],[20,18]].forEach(([t,p])=>{ if(dist(lm[t],w)>dist(lm[p],w)*1.12) n++; }); return n; }
 
+let lastVideoTime = -1, frameN = 0;
 function loop(){
   if(!running) return;
   const now=performance.now(), dt=Math.min(64,now-lastT); lastT=now;
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  if(!showCam){ ctx.fillStyle = "#0E1A17"; ctx.fillRect(0,0,canvas.width,canvas.height); }
-  if(video.readyState>=2){
-    if(hfOn.hand && landmarker){ let res=null; try{ res=landmarker.detectForVideo(video,now); }catch{} handStep(res, now, dt); }
-    if(hfOn.eyes && faceLm){ let fr=null; try{ fr=faceLm.detectForVideo(video,now); }catch{} eyeStep(fr, now, dt); }
-  }
+  if(video.readyState>=2 && video.currentTime !== lastVideoTime){
+    lastVideoTime = video.currentTime; frameN++;
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    if(!showCam){ ctx.fillStyle = "#0E1A17"; ctx.fillRect(0,0,canvas.width,canvas.height); }
+    const both = hfOn.hand && hfOn.eyes && landmarker && faceLm;
+    if(hfOn.hand && landmarker && (!both || frameN % 2 === 0)){ let res=null; try{ res=landmarker.detectForVideo(video,now); }catch{} handStep(res, now, dt); }
+    if(hfOn.eyes && faceLm && (!both || frameN % 2 === 1)){ let fr=null; try{ fr=faceLm.detectForVideo(video,now); }catch{} eyeStep(fr, now, dt); }
+  }else if(hfOn.hand && hdrag) handFollow(now);
   requestAnimationFrame(loop);
 }
 
+// Hand control. The page starts curling as soon as an open hand moves sideways, follows the hand,
+// and turns once the hand has gone far enough (or flicks quickly). Pull back to cancel.
+let hdrag=null, hx=null, hAnchor=null, hLastSeen=0, hLastX=null, hLastT=0, hVel=0;
+let hArmed=true, hStillSince=0, hBlockDir=0, hBlockUntil=0;   // ignore the hand coming back after a swipe
+const H_START = 0.045, H_FULL = 0.30, H_DONE = 0.20;
+function handFollow(now){
+  // between camera frames, keep the curl moving smoothly towards where the hand is heading
+  if(!hdrag || !flip || !flip.ready || flip.isNext !== hdrag.isNext || hdrag.done) return;
+  const ahead = Math.max(0, Math.min(1, ((hx - hdrag.x0) * hdrag.dir + hVel*hdrag.dir*0.04) / H_FULL));
+  const target = flip.f0 + (flip.f1 - flip.f0) * ahead;
+  drawFlip(flip, flip.f + (target - flip.f) * 0.35);
+}
+async function finishHandDrag(go){
+  const hd = hdrag; if(!hd || hd.done) return;
+  hd.done = true;
+  try{ await hd.prep; }catch{}
+  if(flip){
+    if(go && flip.isNext === hd.isNext){ turning = true; await animateFlip(flip, true, 340); endFlip(flip, true); turning = false; }
+    else await cancelFlip();
+  }
+  lastSwipe = performance.now(); hdrag = null; hAnchor = null; hArmed = false; hStillSince = 0;
+  if(go){ hBlockDir = -hd.dir; hBlockUntil = performance.now() + 1200; }
+  setState(go ? (hd.isNext ? "Next page" : "Previous page") : "Ready", "active");
+}
 function handStep(res, now, dt){
   const lm = res && res.landmarks && res.landmarks[0];
-  if(!lm){ hist.length=0; fistStart=0; smoothY=null;
-    setState(paused?"Paused · fist to resume":"Show your hand", paused?"paused":"active"); return; }
+  if(!lm){
+    fistStart=0; smoothY=null;
+    if(hdrag && now - hLastSeen > 250) finishHandDrag(hdrag.max > 0.13);   // a fast swipe often leaves the frame: finish it
+    if(!hdrag){ hx=null; hLastX=null; hAnchor=null; hVel=0; setState(paused?"Paused · fist to resume":"Show your hand", paused?"paused":"active"); }
+    return;
+  }
+  hLastSeen = now;
   drawHand(lm);
   const up=fingersUp(lm), pts=[0,5,9,13,17].map(i=>lm[i]);
-  const cx=1-pts.reduce((s,p)=>s+p.x,0)/5, cy=pts.reduce((s,p)=>s+p.y,0)/5;
-  if(up===0){
+  const rawX=1-pts.reduce((s,p)=>s+p.x,0)/5, cy=pts.reduce((s,p)=>s+p.y,0)/5;
+  hx = hx===null ? rawX : hx*0.35 + rawX*0.65;
+  if(hLastX!==null){ const v=(hx-hLastX)/Math.max(8, now-hLastT)*1000; hVel = hVel*0.45 + v*0.55; }
+  hLastX=hx; hLastT=now;
+
+  if(up===0 && !hdrag){
     if(!fistStart) fistStart=now;
     const held=now-fistStart;
-    if(held>1000){ paused=!paused; fistStart=now+1500; toast(paused?"⏸ Paused":"▶ Resumed"); }
+    if(held>900){ paused=!paused; fistStart=now+1500; toast(paused?"⏸ Paused":"▶ Resumed"); }
     else if(held>0) setState("Hold fist…", paused?"paused":"active");
-    hist.length=0; return;
+    return;
   }
   fistStart=0;
   if(paused){ setState("Paused · fist to resume","paused"); return; }
-  if(up<4){ setState("Open your hand","active"); hist.length=0; return; }
-  hist.push({t:now,x:cx,y:cy});
-  while(hist.length && now-hist[0].t>350) hist.shift();
-  const dx = hist.length>1 ? hist[hist.length-1].x-hist[0].x : 0;
-  const dy = hist.length>1 ? hist[hist.length-1].y-hist[0].y : 0;
-  if(now-lastSwipe>900 && Math.abs(dx)>0.28 && Math.abs(dx)>Math.abs(dy)*1.6){
-    lastSwipe=now; hist.length=0;
-    if((dx>0) === (swipeDir==="right")){ next(); setState("Next page","active"); } else { prev(); setState("Previous page","active"); }
+  if(up<3 && !hdrag){ setState("Open your hand","active"); hAnchor=null; return; }
+
+  if(hAnchor===null) hAnchor = hx;
+  if(!hdrag){
+    if(Math.abs(hVel) < 0.3){ if(!hStillSince) hStillSince = now; } else hStillSince = 0;
+    if(!hArmed && hStillSince && now - hStillSince > 140) hArmed = true;  // a short pause is enough to swipe again
+    if(Math.abs(hVel) < 0.25 || !hArmed) hAnchor = hAnchor*0.6 + hx*0.4;  // hand resting or returning: follow it
+    const d = hx - hAnchor;
+    const returning = (d>0 ? 1 : -1) === hBlockDir && now < hBlockUntil;
+    if(returning) hAnchor = hx;
+    if(hArmed && !returning && Math.abs(d) > H_START && Math.abs(hVel) > 0.3 && !turning && !flip && now - lastSwipe > 300 && isReading()){
+      const isNext = (d>0) === (swipeDir==="right");
+      const target = page + (isNext ? 1 : -1);
+      if(target >= 1 && target <= 604){
+        hdrag = {isNext, x0:hAnchor, dir: d>0 ? 1 : -1, max:0, done:false, movedAt:now};
+        hdrag.prep = prepareFlip(isNext).catch(()=>null);
+        setState(isNext ? "Turning…" : "Going back…", "active");
+      }else hAnchor = hx;
+    }
+  }
+  if(hdrag){
+    if(hdrag.done) return;
+    const d = (hx - hdrag.x0) * hdrag.dir;
+    hdrag.max = Math.max(hdrag.max, d);
+    if(flip && flip.ready && flip.isNext === hdrag.isNext){
+      drawFlip(flip, flip.f0 + (flip.f1 - flip.f0) * Math.max(0, Math.min(1, d / H_FULL)));
+      if(Math.abs(hVel) > 0.25) hdrag.movedAt = now;
+      if(d > H_DONE || (d > 0.11 && hVel*hdrag.dir > 1.1)) finishHandDrag(true);
+      else if(d < 0.01 || d < hdrag.max - 0.08) finishHandDrag(false);           // hand pulled back: cancel
+      else if(now - (hdrag.movedAt || now) > 550) finishHandDrag(d > 0.13);      // hand stopped half way: settle
+    }
     return;
   }
-  smoothY = smoothY===null ? cy : smoothY*.75+cy*.25;
-  if(Math.abs(dx)<0.08 && now-lastSwipe>600){
-    if(smoothY<0.36){ window.scrollBy(0,-(0.4+(0.36-smoothY)/0.36*1.6)*dt); setState("Scrolling up","active"); }
-    else if(smoothY>0.64){ window.scrollBy(0,(0.4+(smoothY-0.64)/0.36*1.6)*dt); setState("Scrolling down","active"); }
-    else setState("Ready","active");
+
+  // hand held still near the top or bottom of the camera: scroll
+  smoothY = smoothY===null ? cy : smoothY*.7+cy*.3;
+  if(Math.abs(hVel) < 0.3 && now-lastSwipe>500){
+    if(smoothY<0.34){ window.scrollBy(0,-(0.5+(0.34-smoothY)/0.34*1.8)*dt); setState("Scrolling up","active"); }
+    else if(smoothY>0.66){ window.scrollBy(0,(0.5+(smoothY-0.66)/0.34*1.8)*dt); setState("Scrolling down","active"); }
+    else setState("Ready · move your hand sideways","active");
   }
 }
 
