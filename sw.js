@@ -2,7 +2,8 @@
 // The app itself (with the full Arabic and English Quran inside) is cached on install.
 // Fonts, the hand tracking model and extra translations are cached the first time they load,
 // so after one online visit they work offline too.
-const VERSION = "qh-v34";
+const VERSION = "qh-v35";
+const FONTS = "qh-quran-fonts";   // the Madinah script fonts: kept across updates
 const SHELL = [
   "./",
   "./index.html",
@@ -21,7 +22,7 @@ self.addEventListener("install", event => {
 self.addEventListener("activate", event => {
   event.waitUntil(
     caches.keys()
-      .then(keys => Promise.all(keys.filter(k => k !== VERSION).map(k => caches.delete(k))))
+      .then(keys => Promise.all(keys.filter(k => k !== VERSION && k !== FONTS).map(k => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });
@@ -50,6 +51,17 @@ self.addEventListener("fetch", event => {
         if (res && res.ok) { const copy = res.clone(); caches.open(VERSION).then(c => c.put("./index.html", copy)); }
         return res;
       }).catch(() => caches.match("./index.html").then(r => r || caches.match(req)))
+    );
+    return;
+  }
+
+  // The Madinah script fonts (one file for about 13 pages): saved once, kept across app updates.
+  if (url.hostname === "cdn.jsdelivr.net" && url.pathname.includes("/quran-qcf4@")) {
+    event.respondWith(
+      caches.open(FONTS).then(c => c.match(req).then(hit => hit || fetch(req).then(res => {
+        if (res && res.ok) c.put(req, res.clone());
+        return res;
+      })))
     );
     return;
   }

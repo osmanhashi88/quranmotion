@@ -44,3 +44,8 @@ Serve the folder over https (any static host: Hostinger, Netlify, GitHub Pages),
 - Page index from quran-meta. 15 line page layout derived from quran-madina-html (Waqf General Public License)
 - KFGQPC Uthmanic Script HAFS font by the King Fahd Glorious Quran Printing Complex, included unmodified under its free licence
 - Other translations from alquran.cloud. Hand tracking by Google MediaPipe
+
+## Credits
+
+- Quran script: the Madinah Mushaf (1441H) QCF4 font by the King Fahd Glorious Quran Printing Complex, calligraphy by Uthman Taha. The font files are loaded from jsDelivr and are not stored in this repository.
+- Page layout data for that script: the quran-qcf4 package by Mohamad Hajj Rabee (MIT).
