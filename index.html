@@ -534,6 +534,33 @@ body.full .pfoot .pn{box-shadow:none;background:var(--pbg2);border-color:var(--p
 .qpage .qe{color:var(--pmark)}
 .qpage .mtitle{font-family:var(--ar)}
 .qpage .mtitle .mt-name{-webkit-text-stroke:.03em currentColor}
+
+/* reading screen buttons: home + settings on the left, bookmark + hand on the right */
+.fbtn{display:none;position:fixed;z-index:32;top:calc(3px + env(safe-area-inset-top,0px));width:36px;height:36px;border-radius:50%;place-items:center;padding:0;
+  background:color-mix(in srgb,var(--pbg2) 90%,transparent);color:var(--pmark);border:1px solid var(--pframe);box-shadow:0 1px 4px rgba(0,0,0,.12)}
+.fbtn svg{width:18px;height:18px}
+#setFloat{left:calc(max(10px,env(safe-area-inset-left,0px)) + 44px)}
+#bmFloat{right:calc(max(10px,env(safe-area-inset-right,0px)) + 44px)}
+#bmFloat.on{background:var(--pmark);color:var(--pbg)}
+#bmFloat.on svg path{fill:currentColor}
+body.immersive:not(:has(#reader[hidden])) .fbtn{display:grid}
+body.immersive:not(:has(#reader[hidden])) #camFloat{display:grid!important;place-items:center}
+#camFloat{background:color-mix(in srgb,var(--pbg2) 90%,transparent);color:var(--pmark);border:1px solid var(--pframe)}
+#camFloat .hic{width:19px;height:19px;position:relative}
+#camFloat[data-cam] .hic{display:none}
+#camFloat:not([data-cam]) #miniCam2{display:none}
+#camFloat[data-cam]{background:#0E1A17;border-color:transparent}
+#camLabel{display:none;position:fixed;z-index:32;top:calc(42px + env(safe-area-inset-top,0px));right:max(4px,env(safe-area-inset-right,0px));width:48px;text-align:center;
+  font:600 9.5px/1.15 var(--ui);color:var(--pmark);pointer-events:none}
+body.immersive:not(:has(#reader[hidden])) #camLabel{display:block}
+body.full #reader .phead{padding:0 98px!important}
+body.full #reader .phead span{font-size:12.5px;padding:3px 10px}
+@media (max-width:380px){ body.full #reader .phead .ps{max-width:42vw} }
+/* the camera never shows on screen, but stays inside the screen so the phone keeps the picture running */
+#cam{position:fixed!important;left:0!important;top:auto!important;bottom:0!important;right:auto!important;width:24px!important;height:24px!important;
+  overflow:hidden!important;opacity:.01;pointer-events:none!important;z-index:1!important;border:0!important;padding:0!important;background:none!important}
+#cam video{width:24px!important;height:24px!important;visibility:visible!important;display:block}
+body.full #reader .mushaf.bookmarked::after{display:none}
 </style>
 </head>
 <body>
@@ -717,7 +744,10 @@ body.full .pfoot .pn{box-shadow:none;background:var(--pbg2);border-color:var(--p
     <div class="zones"><div class="z1"><span style="top:4px">UP</span></div><div class="z3"><span style="bottom:4px">DOWN</span></div></div>
   </div>
 </div>
-<button id="camFloat" hidden aria-label="Hands-free"><canvas id="miniCam2" width="72" height="72"></canvas></button>
+<button id="setFloat" class="fbtn" aria-label="Settings" title="Settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></button>
+<button id="bmFloat" class="fbtn" aria-label="Bookmark this page" title="Bookmark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M6 3h12v18l-6-4.5L6 21z"/></svg></button>
+<button id="camFloat" aria-label="Hand gestures on or off" title="Hand gestures"><canvas id="miniCam2" width="72" height="72"></canvas><svg class="hic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M8 13V5.5a1.5 1.5 0 0 1 3 0V12M11 11.5v-8a1.5 1.5 0 0 1 3 0V12M14 12V5.5a1.5 1.5 0 0 1 3 0V13M17 9.5a1.5 1.5 0 0 1 3 0V15a7 7 0 0 1-7 7h-1a7 7 0 0 1-5.4-2.6L3.8 15.6a1.6 1.6 0 0 1 2.5-2L8 15.3"/></svg></button>
+<div id="camLabel" aria-live="polite"></div>
 <div class="sheet" id="camHelp" hidden role="dialog" aria-label="Gestures help">
   <div class="wrap gut">
     <div class="grab"></div>
@@ -1127,6 +1157,7 @@ function toggleBookmark(){
 function syncBookmarkBtn(){
   const on = isBookmarked(page);
   $("bmBtn").setAttribute("aria-pressed", on); $("bmBtn").classList.toggle("on", on);
+  $("bmFloat").classList.toggle("on", on); $("bmFloat").setAttribute("aria-pressed", on);
   const m = document.querySelector("#reader .mushaf"); if(m) m.classList.toggle("bookmarked", on);
 }
 $("bmBtn").onclick = toggleBookmark;
@@ -1313,6 +1344,8 @@ function goHome(){
 $("backBtn").onclick = goHome;
 $("homeBtn2").onclick = goHome;
 $("homeFloat").onclick = goHome;
+$("setFloat").onclick = ()=>openSheet();
+$("bmFloat").onclick = ()=>$("bmBtn").click();
 
 /* ---------- page rendering ---------- */
 const cache = new Map();
@@ -1972,7 +2005,7 @@ async function loadFace(){
 async function openCamera(){
   if(stream) return;
   stream = await navigator.mediaDevices.getUserMedia({ video:{ facingMode:"user", width:{ideal:320}, height:{ideal:240}, frameRate:{ideal:30} }, audio:false });
-  video.style.visibility = "hidden"; video.srcObject=stream; await video.play(); video.style.visibility = showCam ? "visible" : "hidden"; $("cam").classList.toggle("showpic", showCam);
+  video.style.visibility = "hidden"; video.srcObject=stream; await video.play(); video.style.visibility = "visible"; $("cam").classList.toggle("showpic", showCam);
   canvas.width=video.videoWidth||320; canvas.height=video.videoHeight||240;
   ctx.fillStyle = "#0E1A17"; ctx.fillRect(0,0,canvas.width,canvas.height);
   running=true; requestAnimationFrame(loop);
@@ -1981,7 +2014,8 @@ function closeCameraIfIdle(){
   $("handRow").hidden = !hfOn.hand; $("eyeRow").hidden = !hfOn.eyes;
   if(hfOn.hand || hfOn.eyes) return;
   running=false; if(stream) stream.getTracks().forEach(t=>t.stop()); stream=null; video.srcObject=null;
-  $("cam").hidden=true; $("miniCam").hidden=true; $("hfLive").hidden=true; $("camFloat").hidden=true; delete $("camBtn").dataset.cam;
+  $("cam").hidden=true; $("miniCam").hidden=true; $("hfLive").hidden=true; delete $("camBtn").dataset.cam; delete $("camFloat").dataset.cam;
+  $("camLabel").textContent = gesturesOn ? "" : "Off";
 }
 function camFail(err, what){
   const blocked = err && (err.name==="NotAllowedError" || err.name==="SecurityError");
@@ -1996,7 +2030,7 @@ function camFail(err, what){
 async function startCam(){
   $("cam").hidden=false; $("handRow").hidden=false; setState("Loading hand tracker…","loading");
   try{ await loadHand(); await openCamera(); paused=false; hfOn.hand=true; }
-  catch(err){ hfOn.hand=false; closeCameraIfIdle(); camFail(err,"hand"); }
+  catch(err){ hfOn.hand=false; closeCameraIfIdle(); camFail(err,"hand"); $("camLabel").textContent = err && err.name==="NotAllowedError" ? "Blocked" : "Failed"; }
   closeCameraIfIdle();
 }
 function stopCam(){ hfOn.hand=false; if(hdrag){ hdrag.done=true; hdrag=null; cancelFlip(); } closeCameraIfIdle(); }
@@ -2008,7 +2042,8 @@ async function startEyes(quiet){
 }
 function stopEyes(){ hfOn.eyes=false; closeCameraIfIdle(); }
 function setState(n, mode){
-  $("gestName").textContent=n; const p=$("gestPill"); p.textContent=mode;
+  $("gestName").textContent=n;
+  $("camLabel").textContent = /hand tracker/.test(n) ? "Loading" : /back to the middle/.test(n) ? "Middle" : /^Show/.test(n) ? "Show hand" : /^Ready/.test(n) ? "Ready" : /Hold/.test(n) ? "Hold…" : /Turning|Going back|page$/.test(n) ? "Turning" : ""; const p=$("gestPill"); p.textContent=mode;
   p.className="pill"+(mode==="active"?" go":mode==="paused"?" paused":"");
 }
 const setEye = t => { $("eyeName").textContent = t; };
@@ -2028,18 +2063,21 @@ function drawMini(c){
 function drawViews(now){
   const live = hfOn.hand || hfOn.eyes;
   $("miniCam").hidden = !live;
-  $("camFloat").hidden = !(live && document.body.classList.contains("immersive"));
   if(!live) return;
   const seen = now - Math.max(lastHandSeen, lastFaceSeen) < 400;
   const st = (hdrag || turning) ? "turn" : (seen ? "seen" : "none");
   [$("camBtn"), $("camFloat")].forEach(b=> b.dataset.cam = st);
   drawMini($("miniCam"));
-  if(!$("camFloat").hidden) drawMini($("miniCam2"));
+  if(document.body.classList.contains("immersive")) drawMini($("miniCam2"));
 
 }
+let lastPlayTry = 0, stuckSince = 0;
 function loop(){
   if(!running) return;
   const now=performance.now(), dt=Math.min(64,now-lastT); lastT=now;
+  // phones pause camera video they think nobody sees: keep it playing
+  if(video.currentTime !== lastVideoTime) stuckSince = 0; else if(!stuckSince) stuckSince = now;
+  if((video.paused || (stuckSince && now - stuckSince > 1000)) && now - lastPlayTry > 1000){ lastPlayTry = now; video.play().catch(()=>{}); }
   if(video.readyState>=2 && (video.currentTime !== lastVideoTime || now - lastDetectAt > 70)){
     lastVideoTime = video.currentTime; lastDetectAt = now; frameN++;
     ctx.clearRect(0,0,canvas.width,canvas.height);
@@ -2078,9 +2116,12 @@ async function finishHandDrag(go){
   const hd = hdrag; if(!hd || hd.done) return;
   hd.done = true;
   try{ await hd.prep; }catch{}
-  if(flip){
+  if(flip && flip.ready){
     if(go && flip.isNext === hd.isNext){ turning = true; await animateFlip(flip, true, 320); endFlip(flip, true); turning = false; }
     else await cancelFlip();
+  }else{
+    if(flip) await cancelFlip();
+    if(go) await turn(hd.isNext);              // no curl available: just turn the page
   }
   lastSwipe = hNow; hdrag = null; hAnchor = null; hArmed = false; hStillSince = 0;
   if(go){ hBlockDir = hd.hold ? -hd.side : -hd.dir; hBlockUntil = hNow + 1200; }
@@ -2127,22 +2168,18 @@ function handStep(res, now, dt){
     if(hdrag.hold){
       const stillThere = (hdrag.side > 0 ? hx > 1-HOLD_EDGE-0.05 : hx < HOLD_EDGE+0.05) && Math.abs(hVel) < 0.9;
       if(!stillThere){ finishHandDrag(false); return; }
-      if(flip && flip.ready && flip.isNext === hdrag.isNext){
-        const prog = Math.min(1, (now - hHoldSince) / HOLD_MS);
-        drawFlip(flip, flip.f0 + (flip.f1 - flip.f0) * prog * 0.45);
-        if(prog >= 1) finishHandDrag(true);
-      }
+      const prog = Math.min(1, (now - hHoldSince) / HOLD_MS);
+      if(flip && flip.ready && flip.isNext === hdrag.isNext) drawFlip(flip, flip.f0 + (flip.f1 - flip.f0) * prog * 0.45);
+      if(prog >= 1) finishHandDrag(true);
       return;
     }
     const d = (hx - hdrag.x0) * hdrag.dir;
     hdrag.max = Math.max(hdrag.max, d);
     if(Math.abs(hVel) > 0.2) hdrag.movedAt = now;
-    if(flip && flip.ready && flip.isNext === hdrag.isNext){
-      drawFlip(flip, flip.f0 + (flip.f1 - flip.f0) * Math.max(0, Math.min(1, d / H_FULL)));
-      if(d > H_DONE || (d > 0.10 && hVel*hdrag.dir > 1.0)) finishHandDrag(true);
-      else if(d < -0.01 || d < hdrag.max - 0.08) finishHandDrag(false);
-      else if(now - hdrag.movedAt > 500) finishHandDrag(d > 0.12);
-    }
+    if(flip && flip.ready && flip.isNext === hdrag.isNext) drawFlip(flip, flip.f0 + (flip.f1 - flip.f0) * Math.max(0, Math.min(1, d / H_FULL)));
+    if(d > H_DONE || (d > 0.10 && hVel*hdrag.dir > 1.0)) finishHandDrag(true);
+    else if(d < -0.01 || d < hdrag.max - 0.08) finishHandDrag(false);
+    else if(now - hdrag.movedAt > 500) finishHandDrag(d > 0.12);
     return;
   }
 
