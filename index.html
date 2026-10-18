@@ -577,6 +577,22 @@ body.full:not(:has(#reader[hidden])) #micFloat{display:grid}
 #micHeard.show{display:block}
 .mscroll[style*="pan-y"]:not([style*="pan-x"]){overflow-x:hidden}
 .qpage .qline{min-width:0}
+
+/* eye scroll */
+#eyeFloat{display:none;position:fixed;z-index:32;left:max(10px,env(safe-area-inset-left,0px));bottom:calc(3px + env(safe-area-inset-bottom,0px));
+  width:34px;height:34px;border-radius:50%;place-items:center;padding:0;background:color-mix(in srgb,var(--pbg2) 90%,transparent);color:var(--pmark);
+  border:1px solid var(--pframe);box-shadow:0 1px 4px rgba(0,0,0,.12)}
+#eyeFloat svg{width:18px;height:18px}
+body.full:not(:has(#reader[hidden])) #eyeFloat{display:grid}
+#eyeFloat[data-state=on]{background:var(--pmark);color:var(--pbg);border-color:var(--pmark)}
+#eyeDot{position:fixed;z-index:31;right:2px;width:6px;height:16px;margin-top:-8px;border-radius:3px;background:var(--pmark);opacity:.55;pointer-events:none;transition:top .12s linear}
+#eyeDot[data-on="1"]{opacity:.95;box-shadow:0 0 0 3px color-mix(in srgb,var(--pmark) 30%,transparent)}
+#eyeCal{position:fixed;inset:0;z-index:60;background:color-mix(in srgb,var(--pbg) 86%,transparent);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;text-align:center;padding:24px}
+#eyeCal[hidden]{display:none}
+#eyeCal p{font:600 17px/1.4 var(--ui);color:var(--pink);max-width:420px;margin:0}
+.ecdot{position:fixed;left:50%;width:22px;height:22px;margin-left:-11px;border-radius:50%;background:var(--pmark);box-shadow:0 0 0 6px color-mix(in srgb,var(--pmark) 25%,transparent);opacity:.15}
+.ectop{top:calc(18px + env(safe-area-inset-top,0px))}.ecbot{bottom:calc(18px + env(safe-area-inset-bottom,0px))}
+#eyeCal[data-step="1"] .ectop,#eyeCal[data-step="2"] .ecbot{opacity:1;animation:micPulse 1.2s ease-out infinite}
 </style>
 </head>
 <body>
@@ -734,6 +750,7 @@ body.full:not(:has(#reader[hidden])) #micFloat{display:grid}
     <ul class="hflist">
       <li><span class="hfic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 11V6a2 2 0 0 0-4 0v5M14 10V4a2 2 0 0 0-4 0v6M10 10.5V6a2 2 0 0 0-4 0v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.9-6-2.4l-3.6-3.6a2 2 0 0 1 2.8-2.8L7 15"/></svg></span><span><b>Swipe left or right</b> to turn the page. <b>Swipe up</b> to read on, <b>swipe down</b> to go back</span></li>
       <li><span class="hfic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/></svg></span><span>Or tap the <b>microphone</b> and say <b>next</b>, <b>back</b>, <b>up</b> or <b>down</b>. To jump, say <b>surah 36</b> or <b>surah Yaseen</b>, <b>page 250</b>, <b>juz 30</b> or <b>random page</b></span></li>
+      <li><span class="hfic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></span><span>On a tablet or with the phone on its side, tap the <b>eye</b>: after a short setup, the page scrolls on when your eyes reach the bottom lines</span></li>
       <li><span class="hfic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></span><span>Or <b>hold your hand</b> at one side for a moment: right for the next page, left to go back</span></li>
       <li><span class="hfic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span><span>Keep your hand about an arm's length from the phone, in good light</span></li>
     </ul>
@@ -766,6 +783,9 @@ body.full:not(:has(#reader[hidden])) #micFloat{display:grid}
 <button id="camFloat" aria-label="Hand gestures on or off" title="Hand gestures"><canvas id="miniCam2" width="72" height="72"></canvas><svg class="hic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M8 13V5.5a1.5 1.5 0 0 1 3 0V12M11 11.5v-8a1.5 1.5 0 0 1 3 0V12M14 12V5.5a1.5 1.5 0 0 1 3 0V13M17 9.5a1.5 1.5 0 0 1 3 0V15a7 7 0 0 1-7 7h-1a7 7 0 0 1-5.4-2.6L3.8 15.6a1.6 1.6 0 0 1 2.5-2L8 15.3"/></svg></button>
 <div id="camLabel" aria-live="polite"></div>
 <div id="micHeard" aria-live="polite"></div>
+<button id="eyeFloat" aria-label="Eye scroll: look at the bottom to scroll" title="Eye scroll" data-state="off"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
+<div id="eyeDot" hidden></div>
+<div id="eyeCal" hidden><div class="ecdot ectop"></div><div class="ecdot ecbot"></div><p id="eyeCalText"></p><button id="eyeCalCancel" class="ctl">Cancel</button></div>
 <button id="micFloat" aria-label="Turn on voice commands" title="Voice commands" data-state="off"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/></svg></button>
 <div class="sheet" id="camHelp" hidden role="dialog" aria-label="Gestures help">
   <div class="wrap gut">
@@ -1351,7 +1371,7 @@ function openReader(p){
 function showScreen(){
   const reading = location.hash === "#read";
   $("reader").hidden = !reading; $("home").hidden = reading;
-  if(!reading){ updateLastRead(); if(tab==="saved") renderList(); if(anyOn() || running) stopHandsFree(true); try{ pauseVoice(); }catch{} document.body.classList.remove("immersive"); }
+  if(!reading){ updateLastRead(); if(tab==="saved") renderList(); if(anyOn() || running) stopHandsFree(true); try{ pauseVoice(); }catch{} try{ if(eyeOn) stopEyeScroll(true); }catch{} document.body.classList.remove("immersive"); }
   if(reading){ setTimeout(autoStartHF, 400); setTimeout(()=>{ if(voiceOn) startVoice(false); }, 600); if(view==="mushaf") document.body.classList.add("immersive"); }
   if(reading && !hintShown){ hintShown=true; store.set("tapHint",true); setTimeout(()=>toast("Tap the page for the menu"),600); }
   window.scrollTo(0,0);
@@ -2456,62 +2476,83 @@ $("micFloat").onclick = ()=>{ voiceOn ? stopVoice() : startVoice(true); };
 document.addEventListener("visibilitychange", ()=>{ if(document.visibilityState === "visible"){ if(voiceOn && isReading() && !rec) startVoice(false); } else pauseVoice(); });
 syncMic();
 
-/* eyes: double blink = next page, look down / up and hold = scroll, look to the side and hold = turn page */
-let eyeClosed=false, eyeCloseAt=0, lastBlinkEnd=0, lastEyeTurn=0, gazeSide=0, gazeSideAt=0, gazeV=0, gazeVAt=0, irisBase=null, sideArmed=true;
-function eyeReset(){ eyeClosed=false; lastBlinkEnd=0; gazeSide=0; gazeV=0; irisBase=null; sideArmed=true; }
-function irisRatio(L){
-  // where each iris sits between its eye corners, in the camera image (0 = image left, 1 = image right)
-  const one = (iris, a, b)=>{ const x0=Math.min(L[a].x,L[b].x), x1=Math.max(L[a].x,L[b].x); return (L[iris].x - x0) / Math.max(1e-4, x1-x0); };
-  return (one(468,33,133) + one(473,263,362)) / 2;
-}
-function eyeStep(fr, now, dt){
+/* ---------- eye scroll: look at the bottom lines and the page scrolls on; look at the top and it scrolls back ---------- */
+// A short setup (look at a dot at the top, then at the bottom) teaches the app what top and bottom look like for your eyes.
+let eyeOn = false, eyeCal = null, eyeCalStep = 0, eyeCalSamples = [], eyeG = null, eyeLowSince = 0, eyeHighSince = 0, eyeLastT = 0, eyeVel = 0;
+function eyeReset(){ eyeG = null; eyeLowSince = 0; eyeHighSince = 0; eyeVel = 0; }
+function eyeSignal(fr){
   const cats = fr && fr.faceBlendshapes && fr.faceBlendshapes[0] && fr.faceBlendshapes[0].categories;
   const L = fr && fr.faceLandmarks && fr.faceLandmarks[0];
-  if(!cats || !L){ setEye("Look at the screen"); gazeSide=0; gazeV=0; return; }
-  lastFaceSeen = now;
+  if(!cats || !L) return null;
   const b = {}; cats.forEach(c=> b[c.categoryName] = c.score);
-  // draw the eyes as two small gold rings, no face
-  const W=canvas.width, H=canvas.height;
-  ctx.strokeStyle="rgba(216,180,100,.95)"; ctx.lineWidth=2;
-  [[468,33,133],[473,263,362]].forEach(([i,a,c])=>{ const r=Math.abs(L[a].x-L[c].x)*W/2; ctx.beginPath(); ctx.ellipse((L[a].x+L[c].x)/2*W,(L[a].y+L[c].y)/2*H,r,r*0.55,0,0,Math.PI*2); ctx.stroke();
-    ctx.fillStyle="#fff"; ctx.beginPath(); ctx.arc(L[i].x*W,L[i].y*H,3,0,Math.PI*2); ctx.fill(); });
-
-  // blinks (a deliberate double blink turns the page; single blinks are ignored)
   const blink = ((b.eyeBlinkLeft||0) + (b.eyeBlinkRight||0)) / 2;
-  if(!eyeClosed && blink > 0.55){ eyeClosed = true; eyeCloseAt = now; }
-  else if(eyeClosed && blink < 0.3){
-    eyeClosed = false;
-    if(now - eyeCloseAt < 450){
-      if(lastBlinkEnd && now - lastBlinkEnd < 650 && now - lastEyeTurn > 1500){ lastEyeTurn = now; lastBlinkEnd = 0; next(); setEye("Double blink · next page"); }
-      else lastBlinkEnd = now;
-    }
+  const look = ((b.eyeLookDownLeft||0) + (b.eyeLookDownRight||0)) / 2 - ((b.eyeLookUpLeft||0) + (b.eyeLookUpRight||0)) / 2;
+  // where each iris sits between the upper and lower eyelid
+  let lid = 0;
+  if(L[468] && L[473]){
+    const one = (iris, top, bot)=> (L[iris].y - L[top].y) / Math.max(1e-4, L[bot].y - L[top].y);
+    lid = (one(468,159,145) + one(473,386,374)) / 2;
   }
-  if(eyeClosed) return;
-
-  // looking down or up and holding it scrolls the page
-  const down = ((b.eyeLookDownLeft||0) + (b.eyeLookDownRight||0)) / 2;
-  const upv  = ((b.eyeLookUpLeft||0) + (b.eyeLookUpRight||0)) / 2;
-  const v = down > 0.55 ? 1 : (upv > 0.38 ? -1 : 0);
-  if(v !== gazeV){ gazeV = v; gazeVAt = now; }
-  if(v && now - gazeVAt > 700){ window.scrollBy(0, v * 0.5 * dt); setEye(v > 0 ? "Scrolling down" : "Scrolling up"); }
-
-  // looking to the side and holding it turns the page
-  const r = irisRatio(L);
-  if(irisBase === null) irisBase = r;
-  const d = r - irisBase;
-  if(Math.abs(d) < 0.05) irisBase = irisBase*0.98 + r*0.02;
-  const side = d > 0.13 ? 1 : (d < -0.13 ? -1 : 0);   // +1: towards your left (image is not mirrored)
-  if(side !== gazeSide){ gazeSide = side; gazeSideAt = now; }
-  if(!side) sideArmed = true;
-  if(side && sideArmed && now - gazeSideAt > 900 && now - lastEyeTurn > 1500 && !turning){
-    sideArmed = false; lastEyeTurn = now;
-    const lookRight = side < 0;
-    if(lookRight === (swipeDir === "right")){ next(); setEye("Looked " + (lookRight?"right":"left") + " · next page"); }
-    else { prev(); setEye("Looked " + (lookRight?"right":"left") + " · previous page"); }
-    return;
-  }
-  if(!v && !side && now - lastEyeTurn > 1500) setEye("Reading");
+  return {v: look + lid * 0.8, blink};
 }
+function eyeCalUI(step){
+  const o = $("eyeCal");
+  if(!step){ o.hidden = true; return; }
+  o.hidden = false; o.dataset.step = step;
+  $("eyeCalText").textContent = step === 1 ? "Keep your head still and look at the dot at the top" : "Now look at the dot at the bottom";
+}
+function startEyeCal(){
+  eyeCal = null; eyeCalSamples = []; eyeCalStep = 1; eyeCalUI(1); eyeReset();
+  setTimeout(()=>{ if(eyeCalStep !== 1) return;
+    const a = eyeCalSamples.slice(-14); eyeCalSamples = [];
+    if(a.length < 5){ eyeCalStep = 0; eyeCalUI(0); toast("Could not see your eyes · try in better light"); stopEyeScroll(true); return; }
+    const top = a.reduce((t,x)=>t+x,0)/a.length; eyeCalStep = 2; eyeCalUI(2);
+    setTimeout(()=>{ if(eyeCalStep !== 2) return;
+      const c = eyeCalSamples.slice(-14);
+      const bot = c.length ? c.reduce((t,x)=>t+x,0)/c.length : top;
+      eyeCalStep = 0; eyeCalUI(0);
+      if(c.length < 5 || bot - top < 0.06){ toast("Your eyes did not move enough · try again, closer to the screen"); stopEyeScroll(true); return; }
+      eyeCal = {top, bot}; toast("Eye scroll ready · read on and it follows");
+    }, 2200);
+  }, 2200);
+}
+function eyeStep(fr, now, dt){
+  const sig = eyeSignal(fr);
+  if(!sig){ eyeLowSince = eyeHighSince = 0; eyeVel = 0; eyeLastT = 0; $("eyeDot").hidden = true; return; }
+  lastFaceSeen = now;
+  if(sig.blink > 0.45) return;                                 // blinking: keep the last reading
+  if(eyeCalStep){ eyeCalSamples.push(sig.v); return; }
+  if(!eyeCal) return;
+  const g = (sig.v - eyeCal.top) / (eyeCal.bot - eyeCal.top);  // 0 = top of the screen, 1 = bottom
+  eyeG = eyeG === null ? g : eyeG * 0.82 + g * 0.18;
+  const dot = $("eyeDot"); dot.hidden = false; dot.style.top = (8 + Math.max(0, Math.min(1, eyeG)) * (innerHeight - 16)) + "px";
+  if(turning || overlayOpen()) return;
+  const se = document.scrollingElement || document.documentElement;
+  const canDown = se.scrollTop + innerHeight < se.scrollHeight - 2, canUp = (window.scrollY || se.scrollTop) > 2;
+  let want = 0;
+  if(eyeG > 0.78){ if(!eyeLowSince) eyeLowSince = now; eyeHighSince = 0; if(now - eyeLowSince > 450 && canDown) want = Math.min(1, (eyeG - 0.72) / 0.35); }
+  else if(eyeG < 0.12){ if(!eyeHighSince) eyeHighSince = now; eyeLowSince = 0; if(now - eyeHighSince > 900 && canUp) want = -0.6; }
+  else { eyeLowSince = eyeHighSince = 0; }
+  const edt = eyeLastT ? Math.min(120, now - eyeLastT) : 33; eyeLastT = now;
+  const k = 1 - Math.pow(0.8, edt / 33);
+  eyeVel = eyeVel + (want - eyeVel) * k;                       // gentle start and stop
+  if(Math.abs(eyeVel) > 0.03) window.scrollBy(0, eyeVel * 0.24 * edt);   // up to about 240 pixels a second
+  dot.dataset.on = Math.abs(eyeVel) > 0.1 ? "1" : "";
+}
+async function startEyeScroll(){
+  if(eyeOn) return;
+  eyeOn = true; syncEyeBtn();
+  await startEyes(false);
+  if(!hfOn.eyes){ eyeOn = false; syncEyeBtn(); return; }
+  startEyeCal();
+}
+function stopEyeScroll(quiet){
+  eyeOn = false; eyeCal = null; eyeCalStep = 0; eyeCalUI(0); $("eyeDot").hidden = true; stopEyes(); syncEyeBtn();
+  if(!quiet) toast("Eye scroll off");
+}
+function syncEyeBtn(){ const b = $("eyeFloat"); if(b){ b.dataset.state = eyeOn ? "on" : "off"; b.setAttribute("aria-pressed", eyeOn); } }
+$("eyeFloat").onclick = ()=> eyeOn ? stopEyeScroll() : startEyeScroll();
+$("eyeCalCancel").onclick = ()=> stopEyeScroll();
 
 const BONES=[[0,1],[1,2],[2,3],[3,4],[0,5],[5,6],[6,7],[7,8],[5,9],[9,10],[10,11],[11,12],[9,13],[13,14],[14,15],[15,16],[13,17],[17,18],[18,19],[19,20],[0,17]];
 function drawHand(lm){
