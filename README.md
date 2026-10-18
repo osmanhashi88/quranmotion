@@ -8,7 +8,8 @@ QuranMotion is a web app you can install on iPhone and Android. It works offline
 
 - All 604 pages in the 15 line Madinah mushaf layout, in the King Fahd Complex Uthmanic Hafs font
 - Full Arabic view, or Arabic with translation (English built in, 30 more languages when online)
-- Turn pages hands-free: wave your hand, use your eyes (double blink, look down or up to scroll, look to the side to turn), tilt the phone, or let pages turn on a timer. They can all run together. The camera picture is never shown or recorded
+- One tap turns on hands-free gestures: wave your hand, blink twice or tilt the phone to turn the page. The camera picture is never shown or recorded
+- Optional automatic page turns on a timer, in reading settings
 - Or swipe with a finger or use the buttons, with a paper curl page turn
 - Pinch or double tap to zoom, tap for full screen, White, Paper and Night page colours
 - Search by surah, ayah (2:255), page or juz, plus Surah, Ayah and Juz dropdowns

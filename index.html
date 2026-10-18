@@ -443,6 +443,10 @@ body.immersive #reader .phead{padding-left:50px}
 .hfstat .state{padding:0;font-size:13.5px;display:flex;justify-content:space-between;gap:6px;align-items:center}
 .hfstat .camfoot{padding:0;color:#93A8A2}
 .hfstat .camfoot button{background:#1F2F2B;color:#6FCDB4}
+
+.hflist{list-style:none;margin:4px 0 14px;padding:0;display:flex;flex-direction:column;gap:10px}
+.hflist li{display:flex;align-items:center;gap:12px;font-size:15px;line-height:1.4}
+.hflist b{color:var(--ink)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 @media (max-width:480px){#cam{width:140px}}
 </style>
@@ -561,6 +565,12 @@ body.immersive #reader .phead{padding-left:50px}
         <button data-s="left" aria-pressed="false">← Swipe left</button>
       </div>
     </div>
+    <div class="field"><span>Turn pages automatically</span>
+      <select class="ctl" id="autoSec">
+        <option value="0">Off</option><option value="30">Every 30 seconds</option><option value="45">Every 45 seconds</option><option value="60">Every 1 minute</option>
+        <option value="90">Every 1.5 minutes</option><option value="120">Every 2 minutes</option><option value="180">Every 3 minutes</option>
+      </select>
+    </div>
     <div class="field"><span>Page colour</span>
       <div class="seg" id="themeSeg">
         <button data-t="white" aria-pressed="true">White</button>
@@ -583,50 +593,28 @@ body.immersive #reader .phead{padding-left:50px}
   </div>
 </div>
 
-<div class="sheet" id="hfSheet" hidden role="dialog" aria-label="Hands-free page turning">
+<div class="sheet" id="hfSheet" hidden role="dialog" aria-label="Hands-free reading">
   <div class="wrap gut">
     <div class="grab"></div>
-    <h2>Turn pages without touching</h2>
-    <p class="hfsub">Tap to switch each one on or off. They can all work together.</p>
-    <div class="hflive" id="hfLive" hidden>
-      <canvas id="liveCam" width="160" height="120"></canvas>
-      <div class="hfstat">
-        <div class="state" id="handRow"><span id="gestName">Starting…</span><span class="pill" id="gestPill">loading</span></div>
-        <div class="state" id="eyeRow" hidden><span id="eyeName">Starting…</span><span class="pill go">eyes</span></div>
-        <div class="camfoot"><span>🔒 Private, nothing recorded</span><button id="camStop">Stop camera</button></div>
-      </div>
-    </div>
-    <button class="gobtn" id="hfAll" style="margin:0 0 12px">Turn on all four</button>
-    <div class="hfopts">
-      <button class="hfopt" data-m="hand" aria-pressed="false">
-        <span class="hfic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 11V6a2 2 0 0 0-4 0v5M14 10V4a2 2 0 0 0-4 0v6M10 10.5V6a2 2 0 0 0-4 0v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.9-6-2.4l-3.6-3.6a2 2 0 0 1 2.8-2.8L7 15"/></svg></span>
-        <span class="hft"><b>Wave your hand</b><small>Wave across the camera to turn the page. Your face is never shown on screen.</small></span>
-      </button>
-      <button class="hfopt" data-m="eyes" aria-pressed="false">
-        <span class="hfic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></span>
-        <span class="hft"><b>Use your eyes</b><small>Blink twice quickly for the next page. Look down or up and hold to scroll. Look to the side and hold to turn the page.</small></span>
-      </button>
-      <button class="hfopt" data-m="tilt" aria-pressed="false">
-        <span class="hfic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="7" y="3" width="10" height="18" rx="2" transform="rotate(-15 12 12)"/><path d="M3 8c-1 2-1 6 0 8M21 8c1 2 1 6 0 8"/></svg></span>
-        <span class="hft"><b>Tilt the phone</b><small>Tip the phone to the side to turn the page. No camera at all.</small></span>
-      </button>
-      <button class="hfopt" data-m="auto" aria-pressed="false">
-        <span class="hfic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l3 2M9 2h6"/></svg></span>
-        <span class="hft"><b>Turn pages by themselves</b><small>The next page comes after the time you choose. No camera, no sensors.</small>
-          <select id="autoSec" class="jsel" aria-label="Seconds per page">
-            <option value="30">Every 30 seconds</option><option value="45">Every 45 seconds</option><option value="60">Every 1 minute</option>
-            <option value="90">Every 1.5 minutes</option><option value="120">Every 2 minutes</option><option value="180">Every 3 minutes</option>
-          </select></span>
-      </button>
-    </div>
+    <h2>Hands-free reading</h2>
+    <ul class="hflist">
+      <li><span class="hfic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 11V6a2 2 0 0 0-4 0v5M14 10V4a2 2 0 0 0-4 0v6M10 10.5V6a2 2 0 0 0-4 0v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.9-6-2.4l-3.6-3.6a2 2 0 0 1 2.8-2.8L7 15"/></svg></span><span><b>Wave your hand</b> sideways to turn the page</span></li>
+      <li><span class="hfic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></span><span><b>Blink twice</b> for the next page</span></li>
+      <li><span class="hfic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="7" y="3" width="10" height="18" rx="2" transform="rotate(-15 12 12)"/></svg></span><span><b>Tilt the phone</b> to the side to turn the page</span></li>
+    </ul>
     <div class="privacy">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
-      <p><b>Your privacy:</b> the camera picture stays on your phone. Nothing is recorded, saved or sent anywhere. QuranMotion only looks at the shape of your hand and where your eyes point, and the camera turns off as soon as you stop.</p>
+      <p><b>Private:</b> your face is never shown. The camera picture stays on your phone and is never recorded or sent anywhere.</p>
     </div>
-    <label class="switch"><span>Start automatically when I open the Quran</span><input type="checkbox" id="hfAutoStart"></label>
-    <label class="switch"><span>Show camera picture while waving</span><input type="checkbox" id="showCam"></label>
-    <button class="ctl" id="hfStop" hidden style="width:100%;font-weight:600;margin-bottom:8px">Stop hands-free</button>
-    <button class="ctl" id="hfClose" style="width:100%">Close</button>
+    <p class="hfsub">Tap the hand button again any time to switch gestures off.</p>
+    <button class="gobtn" id="hfGo">Turn on gestures</button>
+    <button class="ctl" id="hfClose" style="width:100%;margin-top:8px">Not now</button>
+    <div hidden>
+      <div id="hfLive"><canvas id="liveCam" width="160" height="120"></canvas></div>
+      <div id="handRow"><span id="gestName"></span><span id="gestPill"></span></div>
+      <div id="eyeRow"><span id="eyeName"></span></div>
+      <button id="camStop"></button><input type="checkbox" id="showCam">
+    </div>
   </div>
 </div>
 <button id="homeFloat" aria-label="Home" title="Home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linejoin="round" stroke-linecap="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h5v-6h4v6h5V10"/></svg></button>
@@ -1630,71 +1618,63 @@ function toast(m){ const t=$("toast"); t.textContent=m; t.classList.add("show");
 let landmarker=null, stream=null, running=false, paused=false;
 const video=$("video"), canvas=$("overlay"), ctx=canvas.getContext("2d");
 const hist=[]; let lastSwipe=0, fistStart=0, smoothY=null, lastT=performance.now();
-/* ---------- hands-free: hand wave, tilt and timed page turns, one at a time or all together ---------- */
+/* ---------- hands-free: one switch for gestures (hand, eyes, tilt), plus an optional page timer ---------- */
 const hfOn = {hand:false, eyes:false, tilt:false, auto:false};
 store.set("showCam", false);
-let showCam = false, autoSec = store.get("autoSec", 60);
-let autoStart = store.get("hfAutoStart", false), autoModes = store.get("hfModes", ["hand","tilt","auto"]);
-$("showCam").checked = showCam; $("autoSec").value = String(autoSec); $("hfAutoStart").checked = autoStart;
-$("showCam").onchange = e=>{ showCam = e.target.checked; $("cam").classList.toggle("showpic", showCam); if(running) video.style.visibility = showCam ? "visible" : "hidden"; };
-$("autoSec").onclick = e=> e.stopPropagation();
-$("autoSec").onchange = e=>{ autoSec = +e.target.value; store.set("autoSec", autoSec); if(hfOn.auto){ autoLeft = autoSec; updatePill(); } };
+let showCam = false;
+let gesturesOn = store.get("gesturesOn", false), autoSec = store.get("autoSec2", 0);
+$("autoSec").value = String(autoSec);
 const anyOn = ()=> hfOn.hand || hfOn.eyes || hfOn.tilt || hfOn.auto;
+const gesturesLive = ()=> hfOn.hand || hfOn.eyes || hfOn.tilt;
 function syncHF(){
-  document.querySelectorAll(".hfopt").forEach(b=>{ const on = hfOn[b.dataset.m]; b.classList.toggle("on", on); b.setAttribute("aria-pressed", on); });
-  $("hfStop").hidden = !anyOn();
-  $("camBtn").classList.toggle("on", anyOn());
+  const g = gesturesLive();
+  $("camBtn").classList.toggle("on", g); $("camBtn").setAttribute("aria-pressed", g);
+  $("camBtn").setAttribute("aria-label", g ? "Turn gestures off" : "Turn gestures on");
   updatePill();
 }
-const openHF = ()=>{ syncHF(); $("hfSheet").hidden=false; $("scrim").hidden=false; };
 const closeHF = ()=>{ $("hfSheet").hidden=true; $("scrim").hidden=true; };
-$("camBtn").onclick = openHF;
-$("camFloat").onclick = openHF;
+async function startGestures(quiet){
+  gesturesOn = true; store.set("gesturesOn", true);
+  await startTilt(true);                    // first, while the tap still counts (iPhone asks permission)
+  await startCam();
+  if(hfOn.hand) await startEyes(true);
+  syncHF();
+  if(!gesturesLive()){ gesturesOn = false; store.set("gesturesOn", false); return; }
+  if(!quiet) toast(hfOn.hand ? "Gestures on: wave, blink or tilt" : "Tilt on");
+}
+function stopGestures(){
+  stopCam(); stopEyes(); stopTilt();
+  gesturesOn = false; store.set("gesturesOn", false);
+  syncHF(); toast("Gestures off");
+}
+function gestureButton(){
+  if(gesturesLive()) return stopGestures();
+  if(!store.get("gestIntro", false)){ $("hfSheet").hidden=false; $("scrim").hidden=false; return; }
+  startGestures();
+}
+$("camBtn").onclick = gestureButton;
+$("camFloat").onclick = gestureButton;
+$("hfGo").onclick = ()=>{ store.set("gestIntro", true); closeHF(); startGestures(); };
 $("hfClose").onclick = closeHF;
-$("hfStop").onclick = ()=>{ stopHandsFree(); closeHF(); };
-$("hfX").onclick = ()=>{ stopTilt(); stopAuto(); syncHF(); };
-$("camStop").onclick = ()=>{ stopCam(); stopEyes(); syncHF(); };
-async function startMode(m){
-  if(hfOn[m]) return;
-  if(m==="hand") await startCam();
-  else if(m==="eyes") await startEyes();
-  else if(m==="tilt") await startTilt();
-  else startAuto();
+$("camStop").onclick = ()=> stopGestures();
+$("hfX").onclick = ()=>{ autoSec = 0; store.set("autoSec2", 0); $("autoSec").value = "0"; stopAuto(); syncHF(); toast("Automatic page turns off"); };
+$("autoSec").onchange = e=>{
+  autoSec = +e.target.value; store.set("autoSec2", autoSec);
+  stopAuto(); if(autoSec > 0 && isReading()) startAuto();
+  syncHF();
+};
+// when the Quran opens: switch back on whatever was on last time
+async function autoStartHF(){
+  if(autoSec > 0 && !hfOn.auto) startAuto();
+  if(gesturesOn && !gesturesLive()) await startGestures(true);
   syncHF();
 }
-function stopMode(m){ if(m==="hand") stopCam(); else if(m==="eyes") stopEyes(); else if(m==="tilt") stopTilt(); else stopAuto(); syncHF(); }
-// each option is a switch: tap to turn it on or off, and any mix can run together
-document.querySelectorAll(".hfopt").forEach(b=> b.onclick = async ()=>{
-  const m = b.dataset.m;
-  if(hfOn[m]) stopMode(m); else await startMode(m);
-  rememberModes();
-});
-$("hfAll").onclick = async ()=>{
-  closeHF();
-  for(const m of ["auto","tilt","hand","eyes"]) await startMode(m);
-  rememberModes();
-  toast("Hands-free on: hand, eyes, tilt and timer");
-};
-function rememberModes(){ const on = Object.keys(hfOn).filter(k=>hfOn[k]); if(on.length){ autoModes = on; store.set("hfModes", on); } }
-$("hfAutoStart").onchange = e=>{ autoStart = e.target.checked; store.set("hfAutoStart", autoStart); rememberModes(); };
-async function autoStartHF(){
-  if(!autoStart || anyOn()) return;
-  for(const m of autoModes) { try{ await startMode(m); }catch{} }
-}
-function stopHandsFree(quiet){
-  const was = anyOn();
-  stopCam(); stopEyes(); stopTilt(); stopAuto(); syncHF();
-  if(was && !quiet) toast("Hands-free off");
-}
+// leaving the reader switches everything off for now (it comes back next time)
+function stopHandsFree(){ stopCam(); stopEyes(); stopTilt(); stopAuto(); syncHF(); }
 function updatePill(){
-  if(!hfOn.tilt && !hfOn.auto){ $("hfPill").hidden = true; return; }
-  const parts = [];
-  if(hfOn.auto) parts.push(autoPaused ? "Timer paused" : "Next page in " + (autoLeft >= 60 ? Math.floor(autoLeft/60)+":"+String(autoLeft%60).padStart(2,"0") : autoLeft+"s"));
-  if(hfOn.tilt) parts.push(hfOn.auto ? "tilt on" : "Tilt " + (swipeDir==="right" ? "right" : "left") + " for next page");
-  if(hfOn.hand) parts.push("hand on");
-  if(hfOn.eyes) parts.push("eyes on");
-  $("hfPillText").textContent = parts.join(" · ");
-  $("hfPause").hidden = !hfOn.auto; $("hfPause").textContent = autoPaused ? "▶" : "❚❚";
+  if(!hfOn.auto){ $("hfPill").hidden = true; return; }
+  $("hfPillText").textContent = autoPaused ? "Paused" : "Next page in " + (autoLeft >= 60 ? Math.floor(autoLeft/60)+":"+String(autoLeft%60).padStart(2,"0") : autoLeft+"s");
+  $("hfPause").hidden = false; $("hfPause").textContent = autoPaused ? "▶" : "❚❚";
   $("hfPill").hidden = false;
 }
 
@@ -1721,18 +1701,18 @@ function onTilt(e){
   }
   if(Math.abs(d) < 8){ tiltArmed = true; tiltBase = tiltBase*0.97 + g*0.03; }
 }
-async function startTilt(){
+async function startTilt(quiet){
   try{
     if(typeof DeviceOrientationEvent !== "undefined" && typeof DeviceOrientationEvent.requestPermission === "function"){
       const r = await DeviceOrientationEvent.requestPermission();
-      if(r !== "granted"){ toast("Motion access was not allowed"); return; }
+      if(r !== "granted"){ if(!quiet) toast("Motion access was not allowed"); return; }
     }
   }catch{ return; }
   tiltBase = null; tiltArmed = true; tiltSeen = false;
   window.addEventListener("deviceorientation", onTilt);
   hfOn.tilt = true;
   clearTimeout(tiltCheck);
-  tiltCheck = setTimeout(()=>{ if(hfOn.tilt && !tiltSeen){ stopTilt(); syncHF(); toast("This device has no tilt sensor"); } }, 2500);
+  tiltCheck = setTimeout(()=>{ if(hfOn.tilt && !tiltSeen){ stopTilt(); syncHF(); if(!quiet) toast("This device has no tilt sensor"); } }, 2500);
 }
 function stopTilt(){ window.removeEventListener("deviceorientation", onTilt); clearTimeout(tiltCheck); hfOn.tilt = false; }
 
@@ -1808,10 +1788,10 @@ async function startCam(){
   closeCameraIfIdle();
 }
 function stopCam(){ hfOn.hand=false; if(hdrag){ hdrag.done=true; hdrag=null; cancelFlip(); } closeCameraIfIdle(); }
-async function startEyes(){
+async function startEyes(quiet){
   $("cam").hidden=false; $("eyeRow").hidden=false; setEye("Loading eye tracker…");
   try{ await loadFace(); await openCamera(); eyeReset(); hfOn.eyes=true; }
-  catch(err){ hfOn.eyes=false; closeCameraIfIdle(); camFail(err,"eyes"); }
+  catch(err){ hfOn.eyes=false; closeCameraIfIdle(); if(!quiet) camFail(err,"eyes"); }
   closeCameraIfIdle();
 }
 function stopEyes(){ hfOn.eyes=false; closeCameraIfIdle(); }
@@ -1835,7 +1815,7 @@ function drawMini(c){
 }
 function drawViews(now){
   const live = hfOn.hand || hfOn.eyes;
-  $("miniCam").hidden = !live; $("hfLive").hidden = !live;
+  $("miniCam").hidden = !live;
   $("camFloat").hidden = !(live && document.body.classList.contains("immersive"));
   if(!live) return;
   const seen = now - Math.max(lastHandSeen, lastFaceSeen) < 400;
@@ -1843,7 +1823,7 @@ function drawViews(now){
   [$("camBtn"), $("camFloat")].forEach(b=> b.dataset.cam = st);
   drawMini($("miniCam"));
   if(!$("camFloat").hidden) drawMini($("miniCam2"));
-  if(!$("hfSheet").hidden){ const lc = $("liveCam").getContext("2d"); lc.save(); lc.setTransform(-1,0,0,1,160,0); lc.drawImage(canvas,0,0,160,120); lc.restore(); }
+
 }
 function loop(){
   if(!running) return;
