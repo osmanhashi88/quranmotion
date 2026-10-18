@@ -561,6 +561,17 @@ body.full #reader .phead span{font-size:12.5px;padding:3px 10px}
   overflow:hidden!important;opacity:.01;pointer-events:none!important;z-index:1!important;border:0!important;padding:0!important;background:none!important}
 #cam video{width:24px!important;height:24px!important;visibility:visible!important;display:block}
 body.full #reader .mushaf.bookmarked::after{display:none}
+
+/* voice commands button: bottom right of the page */
+#micFloat{display:none;position:fixed;z-index:32;right:max(10px,env(safe-area-inset-right,0px));bottom:calc(3px + env(safe-area-inset-bottom,0px));
+  width:34px;height:34px;border-radius:50%;place-items:center;padding:0;background:color-mix(in srgb,var(--pbg2) 90%,transparent);color:var(--pmark);
+  border:1px solid var(--pframe);box-shadow:0 1px 4px rgba(0,0,0,.12)}
+#micFloat svg{width:17px;height:17px}
+body.full:not(:has(#reader[hidden])) #micFloat{display:grid}
+#micFloat[data-state=on],#micFloat[data-state=wait]{background:var(--pmark);color:var(--pbg);border-color:var(--pmark)}
+#micFloat[data-state=on]{animation:micPulse 1.8s ease-out infinite}
+@keyframes micPulse{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--pmark) 55%,transparent)}100%{box-shadow:0 0 0 10px transparent}}
+@media (prefers-reduced-motion:reduce){#micFloat[data-state=on]{animation:none}}
 </style>
 </head>
 <body>
@@ -717,6 +728,7 @@ body.full #reader .mushaf.bookmarked::after{display:none}
     <h2>Turn pages with your hand</h2>
     <ul class="hflist">
       <li><span class="hfic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 11V6a2 2 0 0 0-4 0v5M14 10V4a2 2 0 0 0-4 0v6M10 10.5V6a2 2 0 0 0-4 0v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.9-6-2.4l-3.6-3.6a2 2 0 0 1 2.8-2.8L7 15"/></svg></span><span><b>Swipe left or right</b> to turn the page. <b>Swipe up</b> to read on, <b>swipe down</b> to go back</span></li>
+      <li><span class="hfic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/></svg></span><span>Or tap the <b>microphone</b> and say <b>next page</b>, <b>back page</b>, <b>scroll up</b> or <b>scroll down</b></span></li>
       <li><span class="hfic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></span><span>Or <b>hold your hand</b> at one side for a moment: right for the next page, left to go back</span></li>
       <li><span class="hfic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span><span>Keep your hand about an arm's length from the phone, in good light</span></li>
     </ul>
@@ -748,6 +760,7 @@ body.full #reader .mushaf.bookmarked::after{display:none}
 <button id="bmFloat" class="fbtn" aria-label="Bookmark this page" title="Bookmark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M6 3h12v18l-6-4.5L6 21z"/></svg></button>
 <button id="camFloat" aria-label="Hand gestures on or off" title="Hand gestures"><canvas id="miniCam2" width="72" height="72"></canvas><svg class="hic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M8 13V5.5a1.5 1.5 0 0 1 3 0V12M11 11.5v-8a1.5 1.5 0 0 1 3 0V12M14 12V5.5a1.5 1.5 0 0 1 3 0V13M17 9.5a1.5 1.5 0 0 1 3 0V15a7 7 0 0 1-7 7h-1a7 7 0 0 1-5.4-2.6L3.8 15.6a1.6 1.6 0 0 1 2.5-2L8 15.3"/></svg></button>
 <div id="camLabel" aria-live="polite"></div>
+<button id="micFloat" aria-label="Turn on voice commands" title="Voice commands" data-state="off"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/></svg></button>
 <div class="sheet" id="camHelp" hidden role="dialog" aria-label="Gestures help">
   <div class="wrap gut">
     <div class="grab"></div>
@@ -1332,8 +1345,8 @@ function openReader(p){
 function showScreen(){
   const reading = location.hash === "#read";
   $("reader").hidden = !reading; $("home").hidden = reading;
-  if(!reading){ updateLastRead(); if(tab==="saved") renderList(); if(anyOn() || running) stopHandsFree(true); document.body.classList.remove("immersive"); }
-  if(reading){ setTimeout(autoStartHF, 400); if(view==="mushaf") document.body.classList.add("immersive"); }
+  if(!reading){ updateLastRead(); if(tab==="saved") renderList(); if(anyOn() || running) stopHandsFree(true); try{ pauseVoice(); }catch{} document.body.classList.remove("immersive"); }
+  if(reading){ setTimeout(autoStartHF, 400); setTimeout(()=>{ if(voiceOn) startVoice(false); }, 600); if(view==="mushaf") document.body.classList.add("immersive"); }
   if(reading && !hintShown){ hintShown=true; store.set("tapHint",true); setTimeout(()=>toast("Tap the page for the menu"),600); }
   window.scrollTo(0,0);
 }
@@ -2160,14 +2173,20 @@ function handAct(axis, dir){
     setState(isNext ? "Next page" : "Previous page", "active");
     turn(isNext); return;
   }
+  const what = readMove(dir < 0 ? "down" : "up");   // hand up: read on, hand down: go back
+  if(what) setState(what, "active");
+}
+// next / previous page, or scroll down / up (moving to the next or previous page when there is nothing left to scroll)
+function readMove(kind){
   const se = document.scrollingElement || document.documentElement, step = Math.round(innerHeight * 0.65);
-  if(dir < 0){                                   // hand moved up: read on
-    if(se.scrollTop + innerHeight < se.scrollHeight - 6){ window.scrollBy({top: step, behavior: "smooth"}); setState("Scrolling down", "active"); }
-    else if(page < 604){ setState("Next page", "active"); turn(true); }
-  }else{                                         // hand moved down: go back
-    if(se.scrollTop > 6){ window.scrollBy({top: -step, behavior: "smooth"}); setState("Scrolling up", "active"); }
-    else if(page > 1){ setState("Previous page", "active"); turn(false); }
+  if(kind === "next"){ if(page < 604){ turn(true); return "Next page"; } return ""; }
+  if(kind === "prev"){ if(page > 1){ turn(false); return "Previous page"; } return ""; }
+  if(kind === "down"){
+    if(se.scrollTop + innerHeight < se.scrollHeight - 6){ window.scrollBy({top: step, behavior: "smooth"}); return "Scrolling down"; }
+    if(page < 604){ turn(true); return "Next page"; } return "";
   }
+  if(se.scrollTop > 6){ window.scrollBy({top: -step, behavior: "smooth"}); return "Scrolling up"; }
+  if(page > 1){ turn(false); return "Previous page"; } return "";
 }
 function swipeIn(minX, minY, within, allowY){
   // the biggest move between any earlier point in the last moment and now; one direction must clearly lead
@@ -2225,6 +2244,76 @@ function handStep(res, now, dt){
   if(now - hHoldStart > HOLD_TIME){ hHoldUsed = true; handAct("x", zone); return; }
   if(now - hHoldStart > 250) setState("Hold…", "active");
 }
+
+/* ---------- voice commands: "next page", "back page", "scroll up", "scroll down" ---------- */
+const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+let voiceOn = store.get("voiceOn", false), rec = null, recSession = 0, voiceLastAct = 0, voiceDone = new Set(), voiceRetry = 0, voiceRestartT = 0;
+const VOICE_CMDS = [
+  [/scroll(ing)? down|go down|down page/, "down"],
+  [/scroll(ing)? up|go up|up page/, "up"],
+  [/\b(next|nest|necks|forward)\b/, "next"],
+  [/\b(back|previous|go back|last page)\b/, "prev"],
+];
+function syncMic(state){
+  const b = $("micFloat"); if(!b) return;
+  b.dataset.state = state || (voiceOn ? (rec ? "on" : "wait") : "off");
+  b.setAttribute("aria-pressed", voiceOn);
+  b.setAttribute("aria-label", voiceOn ? "Voice commands on. Tap to turn off" : "Turn on voice commands");
+}
+function heard(txt){
+  txt = " " + txt.toLowerCase().replace(/[^a-z ]/g," ") + " ";
+  for(const [re, kind] of VOICE_CMDS) if(re.test(txt)) return kind;
+  return null;
+}
+function startVoice(fromTap){
+  if(!SpeechRec){ if(fromTap) toast("Voice commands need Chrome or Safari"); voiceOn = false; store.set("voiceOn", false); syncMic(); return; }
+  voiceOn = true; store.set("voiceOn", true);
+  if(rec){ syncMic(); return; }
+  const r = new SpeechRec(); rec = r; const sid = ++recSession;
+  r.lang = "en-GB"; r.continuous = true; r.interimResults = true; r.maxAlternatives = 3;
+  r.onstart = ()=>{ voiceRetry = 0; syncMic("on"); };
+  r.onresult = e=>{
+    for(let i = e.resultIndex; i < e.results.length; i++){
+      const key = sid + ":" + i; if(voiceDone.has(key)) continue;
+      const res = e.results[i]; let txt = "";
+      for(let k = 0; k < res.length; k++) txt += " " + res[k].transcript;
+      const kind = heard(txt); if(!kind) continue;
+      voiceDone.add(key);
+      const now = performance.now();
+      if(now - voiceLastAct < 900 || !isReading() || overlayOpen() || turning || flip) continue;
+      voiceLastAct = now;
+      const what = readMove(kind);
+      if(what) toast(what);
+    }
+  };
+  r.onerror = e=>{
+    if(e.error === "not-allowed" || e.error === "service-not-allowed"){
+      voiceOn = false; store.set("voiceOn", false);
+      toast(e.error === "not-allowed" ? "Microphone blocked · allow it next to the web address" : "Voice commands are not available on this phone");
+    }else if(e.error === "network" && fromTap) toast("Voice commands need internet");
+  };
+  r.onend = ()=>{
+    if(rec === r) rec = null;
+    syncMic();
+    // the phone stops listening after a quiet spell: start again while reading
+    if(voiceOn && isReading() && document.visibilityState === "visible"){
+      clearTimeout(voiceRestartT);
+      voiceRestartT = setTimeout(()=>{ if(voiceOn && isReading() && !rec) startVoice(false); }, Math.min(4000, 250 * (++voiceRetry)));
+    }
+  };
+  try{ r.start(); syncMic("wait"); }catch{ rec = null; syncMic(); }
+  if(fromTap && !store.get("voiceTip", false)){ store.set("voiceTip", true); setTimeout(()=>toast("Say: next page · back page · scroll up · scroll down"), 600); }
+}
+function pauseVoice(){
+  clearTimeout(voiceRestartT);
+  const r = rec; rec = null;
+  if(r){ r.onend = null; try{ r.abort(); }catch{} }
+  syncMic();
+}
+function stopVoice(){ voiceOn = false; store.set("voiceOn", false); pauseVoice(); toast("Voice commands off"); }
+$("micFloat").onclick = ()=>{ voiceOn ? stopVoice() : startVoice(true); };
+document.addEventListener("visibilitychange", ()=>{ if(document.visibilityState === "visible"){ if(voiceOn && isReading() && !rec) startVoice(false); } else pauseVoice(); });
+syncMic();
 
 /* eyes: double blink = next page, look down / up and hold = scroll, look to the side and hold = turn page */
 let eyeClosed=false, eyeCloseAt=0, lastBlinkEnd=0, lastEyeTurn=0, gazeSide=0, gazeSideAt=0, gazeV=0, gazeVAt=0, irisBase=null, sideArmed=true;
