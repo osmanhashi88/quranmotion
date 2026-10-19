@@ -593,6 +593,17 @@ body.full:not(:has(#reader[hidden])) #eyeFloat{display:grid}
 .ecdot{position:fixed;left:50%;width:22px;height:22px;margin-left:-11px;border-radius:50%;background:var(--pmark);box-shadow:0 0 0 6px color-mix(in srgb,var(--pmark) 25%,transparent);opacity:.15}
 .ectop{top:calc(18px + env(safe-area-inset-top,0px))}.ecbot{bottom:calc(18px + env(safe-area-inset-bottom,0px))}
 #eyeCal[data-step="1"] .ectop,#eyeCal[data-step="2"] .ecbot{opacity:1;animation:micPulse 1.2s ease-out infinite}
+
+/* recite */
+#reciteFloat{display:none;position:fixed;z-index:32;right:calc(max(10px,env(safe-area-inset-right,0px)) + 42px);bottom:calc(3px + env(safe-area-inset-bottom,0px));
+  width:34px;height:34px;border-radius:50%;place-items:center;padding:0;background:color-mix(in srgb,var(--pbg2) 90%,transparent);color:var(--pmark);
+  border:1px solid var(--pframe);box-shadow:0 1px 4px rgba(0,0,0,.12)}
+#reciteFloat svg{width:18px;height:18px}
+body.full:not(:has(#reader[hidden])) #reciteFloat{display:grid}
+#reciteFloat[data-state=on]{background:var(--pmark);color:var(--pbg);border-color:var(--pmark);animation:micPulse 1.8s ease-out infinite}
+#micHeard{right:calc(max(10px,env(safe-area-inset-right,0px)) + 84px)!important}
+.rhl{background:color-mix(in srgb,var(--pmark) 14%,transparent);transition:background .3s}
+.qpage .qw.rhl{border-radius:0}
 </style>
 </head>
 <body>
@@ -750,6 +761,7 @@ body.full:not(:has(#reader[hidden])) #eyeFloat{display:grid}
     <ul class="hflist">
       <li><span class="hfic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 11V6a2 2 0 0 0-4 0v5M14 10V4a2 2 0 0 0-4 0v6M10 10.5V6a2 2 0 0 0-4 0v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.9-6-2.4l-3.6-3.6a2 2 0 0 1 2.8-2.8L7 15"/></svg></span><span><b>Swipe left or right</b> to turn the page. <b>Swipe up</b> to read on, <b>swipe down</b> to go back</span></li>
       <li><span class="hfic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/></svg></span><span>Or tap the <b>microphone</b> and say <b>next</b>, <b>back</b>, <b>up</b> or <b>down</b>. To jump, say <b>surah 36</b> or <b>surah Yaseen</b>, <b>page 250</b>, <b>juz 30</b> or <b>random page</b></span></li>
+      <li><span class="hfic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5.5c2.6-1 5.4-1 8 .8v13c-2.6-1.8-5.4-1.8-8-.8z"/><path d="M17 8.5a3.5 3.5 0 0 1 0 5M19.5 6.5a6.5 6.5 0 0 1 0 9"/></svg></span><span>Tap <b>recite</b> and read aloud in Arabic: the ayah you are reading lights up, and the page scrolls and turns with you</span></li>
       <li><span class="hfic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></span><span>On a tablet or with the phone on its side, tap the <b>eye</b>: after a short setup, the page scrolls on when your eyes reach the bottom lines</span></li>
       <li><span class="hfic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></span><span>Or <b>hold your hand</b> at one side for a moment: right for the next page, left to go back</span></li>
       <li><span class="hfic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span><span>Keep your hand about an arm's length from the phone, in good light</span></li>
@@ -783,6 +795,7 @@ body.full:not(:has(#reader[hidden])) #eyeFloat{display:grid}
 <button id="camFloat" aria-label="Hand gestures on or off" title="Hand gestures"><canvas id="miniCam2" width="72" height="72"></canvas><svg class="hic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M8 13V5.5a1.5 1.5 0 0 1 3 0V12M11 11.5v-8a1.5 1.5 0 0 1 3 0V12M14 12V5.5a1.5 1.5 0 0 1 3 0V13M17 9.5a1.5 1.5 0 0 1 3 0V15a7 7 0 0 1-7 7h-1a7 7 0 0 1-5.4-2.6L3.8 15.6a1.6 1.6 0 0 1 2.5-2L8 15.3"/></svg></button>
 <div id="camLabel" aria-live="polite"></div>
 <div id="micHeard" aria-live="polite"></div>
+<button id="reciteFloat" aria-label="Recite: the ayah you read lights up and the page follows" title="Recite" data-state="off"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5.5c2.6-1 5.4-1 8 .8v13c-2.6-1.8-5.4-1.8-8-.8z"/><path d="M11 6.3c1.2-.8 2.5-1.2 3.8-1.3"/><path d="M17 8.5a3.5 3.5 0 0 1 0 5M19.5 6.5a6.5 6.5 0 0 1 0 9"/></svg></button>
 <button id="eyeFloat" aria-label="Eye scroll: look at the bottom to scroll" title="Eye scroll" data-state="off"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
 <div id="eyeDot" hidden></div>
 <div id="eyeCal" hidden><div class="ecdot ectop"></div><div class="ecdot ecbot"></div><p id="eyeCalText"></p><button id="eyeCalCancel" class="ctl">Cancel</button></div>
@@ -1371,8 +1384,8 @@ function openReader(p){
 function showScreen(){
   const reading = location.hash === "#read";
   $("reader").hidden = !reading; $("home").hidden = reading;
-  if(!reading){ updateLastRead(); if(tab==="saved") renderList(); if(anyOn() || running) stopHandsFree(true); try{ pauseVoice(); }catch{} try{ if(eyeOn) stopEyeScroll(true); }catch{} document.body.classList.remove("immersive"); }
-  if(reading){ setTimeout(autoStartHF, 400); setTimeout(()=>{ if(voiceOn) startVoice(false); }, 600); if(view==="mushaf") document.body.classList.add("immersive"); }
+  if(!reading){ updateLastRead(); if(tab==="saved") renderList(); if(anyOn() || running) stopHandsFree(true); try{ pauseVoice(); }catch{} try{ if(eyeOn) stopEyeScroll(true); }catch{} try{ if(reciteOn) stopRecite(true); }catch{} document.body.classList.remove("immersive"); }
+  if(reading){ setTimeout(autoStartHF, 400); setTimeout(()=>{ if(voiceOn && !reciteOn) startVoice(false); }, 600); if(view==="mushaf") document.body.classList.add("immersive"); }
   if(reading && !hintShown){ hintShown=true; store.set("tapHint",true); setTimeout(()=>toast("Tap the page for the menu"),600); }
   window.scrollTo(0,0);
 }
@@ -1494,7 +1507,7 @@ function buildQcfPage(p){
       const [vk, pos, chars, ends] = ln; let [s,a] = vk.split(":").map(Number), fresh = pos===1;
       row = el("div","mline qline" + (lay[i] && lay[i][1] ? " c" : ""));
       [...chars].forEach((ch,j)=>{
-        const end = ends.includes(j), sp = el("span", end ? "qw qe" : "qw", ch);
+        const end = ends.includes(j), sp = el("span", end ? "qw qe" : "qw", ch); sp.dataset.a = s + ":" + a;
         if(fresh && !end){ sp.id = `a-${s}-${a}`; fresh = false; }
         if(end){ a++; fresh = true; }
         row.append(sp);
@@ -1516,11 +1529,11 @@ function buildMushafPage(p){
       if(it[0]==="t"){ row.classList.add("tl"); row.append(surahTitle(SURAHS[it[1]-1])); return; }
       if(it[0]==="b"){ row.classList.add("c"); row.append(el("span","mbas",BASMALA_TEXT)); return; }
       const [s,a,w0,w1] = it; const all = wordsOf(s,a);
-      const span = el("span","mw", all.slice(w0,w1).join(" "));
+      const span = el("span","mw", all.slice(w0,w1).join(" ")); span.dataset.a = s + ":" + a;
       if(w0===0) span.id = `a-${s}-${a}`;
       if(row.childNodes.length) row.append(document.createTextNode(" "));
       row.append(span);
-      if(w1===all.length){ row.append(document.createTextNode(" ")); row.append(mark(a)); }
+      if(w1===all.length){ row.append(document.createTextNode(" ")); const mk = mark(a); mk.dataset.a = s + ":" + a; row.append(mk); }
     });
     pageEl.append(row);
   });
@@ -2384,7 +2397,7 @@ function showHeard(txt){
   const h = $("micHeard"); if(!h) return;
   const words = txt.trim().split(/\s+/).slice(-4).join(" ");
   if(!words) return;
-  h.textContent = "Heard: " + words; h.classList.add("show");
+  h.textContent = "Heard: \u2068" + words + "\u2069"; h.classList.add("show");
   clearTimeout(heardT); heardT = setTimeout(()=>h.classList.remove("show"), 2200);
 }
 function syncMic(state){
@@ -2457,7 +2470,7 @@ function startVoice(fromTap){
     if(rec === r) rec = null;
     syncMic();
     // the phone stops listening after a quiet spell: start again while reading
-    if(voiceOn && isReading() && document.visibilityState === "visible"){
+    if(voiceOn && !reciteOn && isReading() && document.visibilityState === "visible"){
       clearTimeout(voiceRestartT);
       voiceRestartT = setTimeout(()=>{ if(voiceOn && isReading() && !rec) startVoice(false); }, Math.min(4000, 250 * (++voiceRetry)));
     }
@@ -2475,6 +2488,142 @@ function stopVoice(){ voiceOn = false; store.set("voiceOn", false); pauseVoice()
 $("micFloat").onclick = ()=>{ voiceOn ? stopVoice() : startVoice(true); };
 document.addEventListener("visibilitychange", ()=>{ if(document.visibilityState === "visible"){ if(voiceOn && isReading() && !rec) startVoice(false); } else pauseVoice(); });
 syncMic();
+
+/* ---------- recite: read aloud in Arabic, the ayah you are reading lights up, the page scrolls and turns with you ---------- */
+let reciteOn = false, rrec = null, rSession = 0, rWords = [], rPos = 0, rPage = 0, rMiss = 0, rDone = new Map(), rTurnT = 0, rRestartT = 0, rCur = "";
+const arNorm = t => t.replace(/[ؐ-ًؚ-ٰٟۖ-ۭـ]/g,"")
+  .replace(/[آأإٱٲٳ]/g,"ا").replace(/[ىی]/g,"ي").replace(/ة/g,"ه")
+  .replace(/ؤ/g,"و").replace(/ئ/g,"ي").replace(/ء/g,"").replace(/[^ء-ي]/g,"");
+const arStem = w => w.replace(/^(وال|فال|بال|كال|لل|ال|و|ف)/,"");
+function wordLike(a, b){
+  if(!a || !b) return false;
+  if(a === b) return true;
+  const sa = arStem(a), sb = arStem(b);
+  if(sa.length >= 2 && sa === sb) return true;
+  const L = Math.max(a.length, b.length); if(L < 3) return false;
+  return lev(a, b) <= (L <= 4 ? 1 : L <= 7 ? 2 : 3) || (sa.length >= 3 && sb.length >= 3 && lev(sa, sb) <= (Math.max(sa.length, sb.length) <= 5 ? 1 : 2));
+}
+// the words on the page in reading order, each tagged with its ayah (from whichever script is showing)
+function reciteWords(p){
+  const verses = [], add = (k, start, n)=>{ let v = verses.find(x=>x.k===k); if(!v){ v = {k, start, n:0}; verses.push(v); } v.n += n; v.start = Math.min(v.start, start); };
+  if(document.querySelector("#pageBox .qpage")){
+    QCF.p[p-1].forEach(ln=>{
+      if(typeof ln === "number"){ if(ln !== 1 && ln !== 9) verses.push({k:"b:"+ln, bas:true}); return; }
+      if(!Array.isArray(ln)) return;
+      const [vk, pos, chars, ends] = ln; let [s,a] = vk.split(":").map(Number);
+      [...chars].forEach((ch,j)=>{ if(ends.includes(j)){ a++; return; } const k = s+":"+a; add(k, verses.some(v=>v.k===k) ? 1e9 : (k === vk ? pos-1 : 0), 1); });
+    });
+  }else{
+    (MLINES[p-1]||[]).forEach(([ln,c,items])=>items.forEach(it=>{
+      if(it[0]==="t"){ if(it[1] !== 1 && it[1] !== 9) verses.push({k:"b:"+it[1], bas:true}); return; }
+      if(typeof it[0] !== "number") return; add(it[0]+":"+it[1], it[2], it[3]-it[2]);
+    }));
+  }
+  const out = [];
+  verses.forEach((v,vi)=>{
+    let words;
+    if(v.bas) words = BASMALA_TEXT.split(" ");
+    else { const [s,a] = v.k.split(":").map(Number); const all = QD.q[s-1][a-1][0].split(" "); const st = Math.min(v.start, all.length-1); words = all.slice(st, st + v.n); if(vi === verses.length-1 && st + v.n >= all.length - 1) words = all.slice(st); }
+    words.forEach((w,wi)=> out.push({k: v.bas ? null : v.k, n: arNorm(w), lastOnPage: vi === verses.length-1 && wi === words.length-1}));
+  });
+  return out.filter(w=>w.n);
+}
+function reciteHighlight(k){
+  if(k === rCur) return; rCur = k;
+  document.querySelectorAll("#pageBox .rhl").forEach(e=>e.classList.remove("rhl"));
+  if(!k) return;
+  const els = [...document.querySelectorAll(`#pageBox [data-a="${k}"]`)]; if(!els.length) return;
+  els.forEach(e=>e.classList.add("rhl"));
+  // keep the ayah you are reading comfortably in view: when it nears the bottom, bring it up to the top third
+  const top = Math.min(...els.map(e=>e.getBoundingClientRect().top)), bot = Math.max(...els.map(e=>e.getBoundingClientRect().bottom));
+  if(bot > innerHeight * 0.72 || top < 50){
+    const se = document.scrollingElement || document.documentElement;
+    if(se.scrollHeight > innerHeight + 4) window.scrollTo({top: Math.max(0, window.scrollY + top - innerHeight * 0.22), behavior: "smooth"});
+  }
+}
+function recitePrepare(){ rWords = reciteWords(page); rPage = page; rPos = 0; rMiss = 0; rCur = ""; clearTimeout(rTurnT); }
+// follow the reader: each new word heard is looked for a little ahead of where we are; if we lose track, search the whole page
+function reciteHear(words){
+  if(page !== rPage || !rWords.length) recitePrepare();
+  for(const raw of words){
+    const w = arNorm(raw);
+    // the opening letters (Alif Lam Meem, Ya Seen...) are heard as letter names: match them to a short first ayah close by
+    if(/^(الف|لام|ميم|را|راء|صاد|كاف|ها|هاء|يا|ياء|عين|طا|طاء|سين|حا|حاء|قاف|نون)$/.test(w)){
+      for(let j = Math.max(0, rPos - 1); j < Math.min(rWords.length, rPos + 4); j++){ const c = rWords[j]; if(c.k && /:1$/.test(c.k) && c.n.length <= 5){ rPos = j + 1; reciteHighlight(c.k); break; } }
+      continue;
+    }
+    if(w.length < 2) continue;
+    let hit = -1;
+    for(let j = Math.max(0, rPos - 2); j < Math.min(rWords.length, rPos + 12); j++) if(wordLike(w, rWords[j].n)){ hit = j; break; }
+    if(hit < 0){ rMiss++; continue; }
+    rMiss = 0; rPos = hit + 1;
+    const cur = rWords[hit];
+    if(cur.k) reciteHighlight(cur.k);
+    if((cur.lastOnPage || hit >= rWords.length - 3) && page < 604){
+      clearTimeout(rTurnT);
+      rTurnT = setTimeout(()=>{ if(reciteOn && !turning && rPage === page){ turn(true).then(()=>setTimeout(()=>{ recitePrepare(); window.scrollTo(0,0); }, 80)); } }, 900);
+    }
+  }
+  // lost: find the best run of the last few words anywhere on the page (at least 3 of the last 4 must match)
+  if(rMiss >= 4 && words.length >= 3){
+    const tail = words.slice(-4).map(arNorm).filter(x=>x.length>=2); let best = -1, bestScore = 2;
+    for(let j = 0; j < rWords.length; j++){
+      let sc = 0, q = j;
+      for(const t of tail){ const lim = j + tail.length + 2; while(q < rWords.length && q < lim && !wordLike(t, rWords[q].n)) q++; if(q < rWords.length && q < lim){ sc++; q++; } }
+      if(sc > bestScore){ bestScore = sc; best = q; }
+    }
+    if(best > 0){ rPos = best; rMiss = 0; const cur = rWords[best-1]; if(cur && cur.k) reciteHighlight(cur.k); }
+    // already reading the next page? turn to it
+    else if(page < 604 && !turning){
+      const nxt = reciteWordsFromData(page + 1).slice(0, 25); let sc = 0, q = 0;
+      for(const t of tail){ while(q < nxt.length && !wordLike(t, nxt[q].n)) q++; if(q < nxt.length){ sc++; q++; } }
+      if(sc >= 3){ rMiss = 0; turn(true).then(()=>setTimeout(()=>{ recitePrepare(); rPos = Math.min(q, rWords.length); window.scrollTo(0,0); const c = rWords[rPos-1]; if(c && c.k) reciteHighlight(c.k); }, 80)); }
+    }
+  }
+}
+// the next page's words straight from the data (it is not on screen yet)
+function reciteWordsFromData(p){
+  const out = [];
+  QCF.p[p-1].forEach(ln=>{
+    if(!Array.isArray(ln)) return;
+    const [vk, pos, chars, ends] = ln; let [s,a] = vk.split(":").map(Number), w = pos - 1;
+    [...chars].forEach((ch,j)=>{ if(ends.includes(j)){ a++; w = 0; return; } const t = (QD.q[s-1][a-1][0].split(" ")[w++]) || ""; if(t) out.push({k: s+":"+a, n: arNorm(t)}); });
+  });
+  return out.filter(x=>x.n);
+}
+function startRecite(silent){
+  if(!SpeechRec){ toast("Recite needs Chrome or Safari"); return; }
+  if(voiceOn) pauseVoice();
+  reciteOn = true; syncRecite(); if(!silent) recitePrepare();
+  const r = new SpeechRec(); rrec = r; const sid = ++rSession;
+  r.lang = "ar-SA"; r.continuous = true; r.interimResults = true; r.maxAlternatives = 1;
+  r.onresult = e=>{
+    for(let i = e.resultIndex; i < e.results.length; i++){
+      const key = sid + ":" + i, words = e.results[i][0].transcript.trim().split(/\s+/).filter(Boolean);
+      const done = Math.min(rDone.get(key) || 0, words.length);
+      // the newest words; the very last one may still change while you speak, so wait for it unless the sentence is finished
+      const upto = e.results[i].isFinal ? words.length : Math.max(done, words.length - 1);
+      if(upto > done){ reciteHear(words.slice(done, upto)); rDone.set(key, upto); }
+      if(e.results[i].isFinal && words.length) showHeard(words.slice(-3).join(" "));
+    }
+  };
+  r.onerror = e=>{
+    if(e.error === "not-allowed" || e.error === "service-not-allowed"){ toast("Microphone blocked · allow it next to the web address"); stopRecite(true); }
+    else if(e.error === "language-not-supported"){ toast("Arabic listening is not available on this device"); stopRecite(true); }
+  };
+  r.onend = ()=>{ if(rrec === r) rrec = null; if(reciteOn && isReading()){ clearTimeout(rRestartT); rRestartT = setTimeout(()=>{ if(reciteOn && !rrec) startRecite(true); }, 250); } };
+  try{ r.start(); }catch{}
+  if(!silent) toast("Start reciting · the ayah you read lights up");
+}
+function stopRecite(quiet){
+  reciteOn = false; clearTimeout(rTurnT); clearTimeout(rRestartT);
+  const r = rrec; rrec = null; if(r){ r.onend = null; try{ r.abort(); }catch{} }
+  rCur = ""; document.querySelectorAll("#pageBox .rhl").forEach(e=>e.classList.remove("rhl"));
+  syncRecite(); if(!quiet) toast("Recite off");
+  if(voiceOn && isReading()) startVoice(false);
+}
+function syncRecite(){ const b = $("reciteFloat"); if(b){ b.dataset.state = reciteOn ? "on" : "off"; b.setAttribute("aria-pressed", reciteOn); } }
+$("reciteFloat").onclick = ()=> reciteOn ? stopRecite() : startRecite();
 
 /* ---------- eye scroll: look at the bottom lines and the page scrolls on; look at the top and it scrolls back ---------- */
 // A short setup (look at a dot at the top, then at the bottom) teaches the app what top and bottom look like for your eyes.
