@@ -611,6 +611,9 @@ body.full:not(:has(#reader[hidden])) #reciteFloat{display:grid}
 #camFloat{display:none}
 body.immersive:not(:has(#reader[hidden])) #camFloat{display:grid!important}
 .installbtn{white-space:nowrap}
+body:not(:has(#reader[hidden])) #micFloat{display:grid}
+body:not(.full) #micFloat{bottom:calc(76px + env(safe-area-inset-bottom,0px))}
+body:not(.full) #micHeard{bottom:calc(81px + env(safe-area-inset-bottom,0px))}
 </style>
 </head>
 <body>
@@ -767,7 +770,7 @@ body.immersive:not(:has(#reader[hidden])) #camFloat{display:grid!important}
     <h2>Turn pages with your hand</h2>
     <ul class="hflist">
       <li><span class="hfic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 11V6a2 2 0 0 0-4 0v5M14 10V4a2 2 0 0 0-4 0v6M10 10.5V6a2 2 0 0 0-4 0v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.9-6-2.4l-3.6-3.6a2 2 0 0 1 2.8-2.8L7 15"/></svg></span><span><b>Swipe left or right</b> to turn the page. <b>Swipe up</b> to read on, <b>swipe down</b> to go back</span></li>
-      <li><span class="hfic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/></svg></span><span>Or tap the <b>microphone</b> and say <b>next</b>, <b>back</b>, <b>up</b> or <b>down</b>. To jump, say <b>surah 36</b> or <b>surah Yaseen</b>, <b>page 250</b>, <b>juz 30</b> or <b>random page</b></span></li>
+      <li><span class="hfic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/></svg></span><span>Or tap the <b>microphone</b> and say <b>next</b>, <b>back</b>, <b>up</b> or <b>down</b>. To jump, say <b>surah 36</b> or <b>surah Yaseen</b>, <b>page 250</b>, <b>juz 30</b> or <b>random page</b>. Say <b>translation</b> (or <b>Urdu translation</b>, <b>show Somali</b>…) to add a translation, and <b>Arabic only</b> to go back</span></li>
       <li><span class="hfic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5.5c2.6-1 5.4-1 8 .8v13c-2.6-1.8-5.4-1.8-8-.8z"/><path d="M17 8.5a3.5 3.5 0 0 1 0 5M19.5 6.5a6.5 6.5 0 0 1 0 9"/></svg></span><span>Tap <b>recite</b> and read aloud in Arabic: the ayah you are reading lights up, and the page scrolls and turns with you</span></li>
       <li><span class="hfic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></span><span>On a tablet or with the phone on its side, tap the <b>eye</b>: after a short setup, the page scrolls on when your eyes reach the bottom lines</span></li>
       <li><span class="hfic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></span><span>Or <b>hold your hand</b> at one side for a moment: right for the next page, left to go back</span></li>
@@ -920,6 +923,12 @@ $("trQuick").onchange = e=>setTr1(e.target.value);
 $("tr2").onchange = e=>{ tr2=e.target.value; store.set("tr2",tr2); if(isReading()) render(page,{keep:true}); };
 $("trTog").onchange = e=>{ document.body.classList.toggle("hide-tr",!e.target.checked); store.set("showTr",e.target.checked); };
 const setView = e=>{ const v=e.target.dataset.v; if(!v || v===view) return; view=v; store.set("view2",v); syncSeg(); if(isReading()) render(page,{keep:true}); };
+function setViewTo(v){
+  if(v === view) return;
+  view = v; store.set("view2", v); syncSeg();
+  document.body.classList.toggle("immersive", v === "mushaf" && isReading());
+  if(isReading()) render(page, {keep:true});
+}
 $("viewSeg").onclick = setView; $("modeSeg").onclick = setView;
 $("smaller").onclick = $("zOut").onclick = ()=>zoomTo(arSize-3);
 $("bigger").onclick = $("zIn").onclick = ()=>zoomTo(arSize+3);
@@ -2380,6 +2389,18 @@ function surahByName(words){
   return null;
 }
 const NAV_KEYS = {surah:"s",sura:"s",surat:"s",soorah:"s",sorah:"s",sora:"s",surra:"s",soora:"s",chapter:"s",page:"p",paige:"p",juz:"j",jus:"j",juice:"j",joes:"j",jews:"j",jazz:"j",juze:"j",para:"j",parah:"j"};
+// translation by voice: "translation", "English translation", "translation Urdu", "show Somali"; "Arabic only" / "translation off" goes back
+const TR_LANGS = (()=>{ const m = {}; EDITIONS.forEach(([id,l])=>{ const k = l.toLowerCase(); if(!m[k]) m[k] = id; }); m.farsi = m.persian; m.bangla = m.bengali; m.malaysian = m.malay; m.somalia = m.somali; m.urdo = m.urdu; return m; })();
+function trCommand(txt){
+  const t = " " + txt.toLowerCase().replace(/[^a-z ]/g," ").replace(/\s+/g," ") + " ";
+  if(/ (arabic only|only arabic|full page|mushaf|no translation|hide (the )?translations?|translations? off|close (the )?translations?|stop translations?|remove (the )?translations?) /.test(t)) return {kind:"m"};
+  const trWord = /(translation|translations|translate|translated|meaning|meanings)/.test(t);
+  let lang = null;
+  for(const k of Object.keys(TR_LANGS)) if(new RegExp(" " + k + " ").test(t) && k !== "arabic"){ lang = k; break; }
+  if(/ tafsir /.test(t)) lang = "arabic";
+  if(trWord || (lang && / (show|in|switch to|change to|read in) /.test(t))) return {kind:"t", lang};
+  return null;
+}
 function navsIn(txt){
   const w = txt.toLowerCase().replace(/(\d+)/g," $1 ").replace(/[^a-z0-9 ]/g," ").split(/\s+/).filter(Boolean), out = [];
   for(let i = 0; i < w.length; i++){
@@ -2394,6 +2415,12 @@ function navsIn(txt){
   return out;
 }
 function voiceGo(g){
+  if(g.kind === "m"){ setViewTo("mushaf"); return "Arabic only"; }
+  if(g.kind === "t"){
+    if(g.lang){ const id = TR_LANGS[g.lang]; if(view === "tr") setTr1(id); else { tr1 = id; store.set("tr1", id); $("tr1").value = id; $("trQuick").value = id; } }
+    setViewTo("tr");
+    const id = g.lang ? TR_LANGS[g.lang] : tr1; return "Translation · " + (LANG[id] || id).split(" · ")[0];
+  }
   if(g.kind === "s"){ const S = SURAHS[g.n-1]; openAyah(g.n, 1); return "Surah " + S.englishName + " (" + g.n + ")"; }
   if(g.kind === "p" || g.kind === "r"){ openReader(g.n); return (g.kind === "r" ? "Random page · " : "Page ") + g.n; }
   const r = JUZ_REFS[g.n-1]; openAyah(r.surah, r.ayah); return "Juz " + g.n;
@@ -2441,7 +2468,7 @@ function startVoice(fromTap){
       showHeard(txt);
       // places ("surah 36", "page 250", "juz 30") only once the phone has finished the sentence, so "surah 3…" never jumps early
       if(res.isFinal){
-        const navs = navsIn(txt), nd = navDone.get(key) || 0;
+        const trc = trCommand(txt), navs = trc ? [trc] : navsIn(txt), nd = navDone.get(key) || 0;
         if(navs.length > nd){
           navDone.set(key, navs.length);
           if(!turning && !flip && !overlayOpen()){ voiceLastAct = performance.now(); toast(voiceGo(navs[navs.length-1])); }
@@ -2483,7 +2510,7 @@ function startVoice(fromTap){
     }
   };
   try{ r.start(); syncMic("wait"); }catch{ rec = null; syncMic(); }
-  if(fromTap && !store.get("voiceTip", false)){ store.set("voiceTip", true); setTimeout(()=>toast("Say: next · back · up · down · surah 36 · page 250 · juz 30"), 600); }
+  if(fromTap && !store.get("voiceTip", false)){ store.set("voiceTip", true); setTimeout(()=>toast("Say: next · back · up · down · surah 36 · page 250 · translation · Arabic only"), 600); }
 }
 function pauseVoice(){
   clearTimeout(voiceRestartT);
