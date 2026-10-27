@@ -2235,7 +2235,7 @@ function beginTurn(isNext, now, extra){
 let hHist = [], hPresentSince = 0, hCool = 0, hCoolV = 0, hIgnore = "", hIgnoreUntil = 0, hHoldZone = 0, hHoldStart = 0, hHoldUsed = false, hy = null;
 // after a sideways turn, moving the other way is ignored until the hand is back where the swipe started,
 // leaves the camera, or rests still for 2 seconds. A hold also waits until the hand has been back to the middle.
-let hBlock = null, hNeedMiddle = false, hStillAt = 0, hSize = 0.12;
+let hBlock = null, hNeedMiddle = false, hStillAt = 0, hSize = 0.12, hTrack = [];   // hTrack: recent hand positions, never wiped (used to judge speed)
 // how far is a swipe? measured in hand sizes, so a small (far away) hand needs a smaller move than a close one
 const swX = ()=> Math.max(0.07, Math.min(0.17, hSize * 1.0));
 const swY = ()=> Math.max(0.08, Math.min(0.19, hSize * 1.15));
@@ -2284,6 +2284,12 @@ function swipeIn(minX, minY, within, allowY){
   // the biggest move between any earlier point in the last moment and now; one direction must clearly lead
   if(hHist.length < 2) return null;
   const last = hHist[hHist.length-1]; let bx = 0, by = 0, byT = 0;
+  // straight after a turn, moving back is ignored... except a quick, deliberate swipe (a relaxed hand coming back is slower)
+  if(!within && (hBlock || (hIgnore && hNow < hIgnoreUntil))){
+    let tx = 0, tx0 = last.x; for(const h of hTrack){ if(last.t - h.t <= 300){ const d = last.x - h.x; if(Math.abs(d) > Math.abs(tx)){ tx = d; tx0 = h.x; } } }
+    const dir = tx > 0 ? 1 : -1, back = hBlock ? dir === -hBlock.dir : ("x" + dir) === hIgnore;
+    if(back && Math.abs(tx) >= Math.min(0.22, swX() * 1.35)){ hBlock = null; hIgnore = ""; return {axis:"x", dir, x0: tx0}; }
+  }
   for(const h of hHist){
     if(within && last.t - h.t > within) continue;
     const dx = last.x - h.x, dy = last.y - h.y;
@@ -2297,7 +2303,9 @@ function swipeIn(minX, minY, within, allowY){
   else if(allowY && Math.abs(by) >= minY && Math.abs(by) > Math.abs(bx) * 1.6 && byT - hPresentSince > V_SETTLE) g = {axis:"y", dir: by > 0 ? 1 : -1};
   if(!g) return null;
   if(g.axis + g.dir === hIgnore && hNow < hIgnoreUntil){ hHist = [last]; return null; }   // the hand coming back: forget that movement
-  if(g.axis === "x" && hBlock && g.dir === -hBlock.dir){ hHist = [last]; return null; }   // still the way back after a turn
+  if(g.axis === "x" && hBlock && g.dir === -hBlock.dir){
+    hHist = [last]; return null;                 // the way back after a turn (quick swipes were let through above)
+  }
   return g;
 }
 function handStep(res, now, dt){
@@ -2312,7 +2320,7 @@ function handStep(res, now, dt){
     if(now - hLastSeen > 260){ hHist = []; hx = null; hy = null; hHoldZone = 0; hHoldUsed = false; hBlock = null; hNeedMiddle = false; setState("Show your hand", "active"); }
     return;
   }
-  if(now - hLastSeen > 400){ hHist = []; hPresentSince = now; hx = null; hy = null; }   // the hand has just come into view
+  if(now - hLastSeen > 400){ hHist = []; hTrack = []; hPresentSince = now; hx = null; hy = null; }   // the hand has just come into view
   hLastSeen = now; lastHandSeen = now;
   drawHand(lm);
   // palm centre, mirrored so left and right match what you see
@@ -2323,6 +2331,7 @@ function handStep(res, now, dt){
   hx = hx === null ? rawX : hx*0.3 + rawX*0.7;
   hy = hy === null ? rawY : hy*0.3 + rawY*0.7;
   hHist.push({t:now, x:hx, y:hy});
+  hTrack.push({t:now, x:hx}); while(hTrack.length && now - hTrack[0].t > 400) hTrack.shift();
   while(hHist.length && now - hHist[0].t > SW_MS) hHist.shift();
   // is the hand resting? (used to end the "way back" block)
   { let lo = 1, hi = 0, n = 0; for(const h of hHist){ if(now - h.t < 350){ lo = Math.min(lo, h.x); hi = Math.max(hi, h.x); n++; } }
