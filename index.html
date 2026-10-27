@@ -1831,7 +1831,7 @@ function animateFlip(st, toEnd, ms){
     requestAnimationFrame(step);
   });
 }
-async function turn(isNext){
+async function turn(isNext, dur){
   if(!isReading() || turning) return;
   const target = page + (isNext ? 1 : -1);
   if(target < 1 || target > 604){ toast(isNext ? "Last page" : "First page"); return; }
@@ -1840,7 +1840,7 @@ async function turn(isNext){
     if(reduceMotion){ await render(target); }
     else{
       const st = flip && flip.isNext===isNext && flip.ready ? flip : await prepareFlip(isNext);
-      if(st){ await animateFlip(st, true, 950); endFlip(st, true); }
+      if(st){ await animateFlip(st, true, dur || 950); endFlip(st, true); }
     }
   }catch{ document.querySelectorAll(".leaf,.curl").forEach(n=>n.remove()); flip=null; bookEl().style.clipPath=""; }
   turning = false;
@@ -2066,7 +2066,7 @@ async function loadHand(){
   if(landmarker) return;
   const {v, files} = await loadVision();
   const opts = d=>({ baseOptions:{ modelAssetPath:"https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task", delegate:d },
-    runningMode:"VIDEO", numHands:1, minHandDetectionConfidence:.5, minHandPresenceConfidence:.5, minTrackingConfidence:.4 });
+    runningMode:"VIDEO", numHands:1, minHandDetectionConfidence:.4, minHandPresenceConfidence:.4, minTrackingConfidence:.3 });
   const pref = store.get("handDelegate", "GPU");
   try{ landmarker = await v.HandLandmarker.createFromOptions(files, opts(pref)); handDelegate = pref; }
   catch{ landmarker = await v.HandLandmarker.createFromOptions(files, opts("CPU")); handDelegate = "CPU"; }
@@ -2090,7 +2090,7 @@ async function loadFace(){
 }
 async function openCamera(){
   if(stream) return;
-  stream = await navigator.mediaDevices.getUserMedia({ video:{ facingMode:"user", width:{ideal:320}, height:{ideal:240}, frameRate:{ideal:30} }, audio:false });
+  stream = await navigator.mediaDevices.getUserMedia({ video:{ facingMode:"user", width:{ideal:640}, height:{ideal:480}, frameRate:{ideal:30} }, audio:false });
   video.style.visibility = "hidden"; video.srcObject=stream; await video.play(); video.style.visibility = "visible"; $("cam").classList.toggle("showpic", showCam);
   canvas.width=video.videoWidth||320; canvas.height=video.videoHeight||240;
   ctx.fillStyle = "#0E1A17"; ctx.fillRect(0,0,canvas.width,canvas.height);
@@ -2235,11 +2235,14 @@ function beginTurn(isNext, now, extra){
 let hHist = [], hPresentSince = 0, hCool = 0, hCoolV = 0, hIgnore = "", hIgnoreUntil = 0, hHoldZone = 0, hHoldStart = 0, hHoldUsed = false, hy = null;
 // after a sideways turn, moving the other way is ignored until the hand is back where the swipe started,
 // leaves the camera, or rests still for 2 seconds. A hold also waits until the hand has been back to the middle.
-let hBlock = null, hNeedMiddle = false, hStillAt = 0;
+let hBlock = null, hNeedMiddle = false, hStillAt = 0, hSize = 0.12;
+// how far is a swipe? measured in hand sizes, so a small (far away) hand needs a smaller move than a close one
+const swX = ()=> Math.max(0.07, Math.min(0.17, hSize * 1.0));
+const swY = ()=> Math.max(0.08, Math.min(0.19, hSize * 1.15));
 const SW_DIST = 0.18, SW_DIST_Y = 0.20, SW_MS = 650, SW_LOST = 0.09, EDGE = 0.25, HOLD_TIME = 950, STILL = 0.05, V_SETTLE = 350;
 function handAct(axis, dir, x0){
   if(axis === "x"){ hBlock = {dir, x0: x0 == null ? 0.5 : x0}; hNeedMiddle = true; hStillAt = 0; }
-  hCool = hNow + 900; hCoolV = hNow + (axis === "x" ? 1500 : 900);
+  hCool = hNow + 600; hCoolV = hNow + (axis === "x" ? 1300 : 700);
   hIgnore = axis + (-dir); hIgnoreUntil = hNow + 1300; hHist = [];
   if(turning || flip || !isReading() || overlayOpen()) return;
   lastSwipe = hNow;
@@ -2247,7 +2250,7 @@ function handAct(axis, dir, x0){
     const isNext = (dir > 0) === (swipeDir === "right");
     const target = page + (isNext ? 1 : -1); if(target < 1 || target > 604) return;
     setState(isNext ? "Next page" : "Previous page", "active");
-    turn(isNext); return;
+    turn(isNext, 520); return;
   }
   const what = readMove(dir < 0 ? "down" : "up");   // hand up: read on, hand down: go back
   if(what) setState(what, "active");
@@ -2303,7 +2306,7 @@ function handStep(res, now, dt){
   if(!lm){
     // a quick sideways swipe often leaves the picture before it is finished: count it if it was clearly moving
     if(hHist.length >= 2 && now - hLastSeen < 260 && now >= hCool && !turning){
-      const g = swipeIn(SW_LOST, 9, 250, false);
+      const g = swipeIn(swX() * 0.55, 9, 250, false);
       if(g){ handAct(g.axis, g.dir, g.x0); return; }
     }
     if(now - hLastSeen > 260){ hHist = []; hx = null; hy = null; hHoldZone = 0; hHoldUsed = false; hBlock = null; hNeedMiddle = false; setState("Show your hand", "active"); }
@@ -2315,6 +2318,8 @@ function handStep(res, now, dt){
   // palm centre, mirrored so left and right match what you see
   const P = [0,5,9,13,17];
   const rawX = 1 - P.reduce((t,i)=>t+lm[i].x,0)/5, rawY = P.reduce((t,i)=>t+lm[i].y,0)/5;
+  const palm = Math.hypot(lm[5].x - lm[17].x, lm[5].y - lm[17].y) + Math.hypot(lm[0].x - lm[9].x, lm[0].y - lm[9].y) * 0.5;
+  hSize = hSize * 0.8 + Math.max(0.03, Math.min(0.3, palm)) * 0.2;
   hx = hx === null ? rawX : hx*0.3 + rawX*0.7;
   hy = hy === null ? rawY : hy*0.3 + rawY*0.7;
   hHist.push({t:now, x:hx, y:hy});
@@ -2331,7 +2336,7 @@ function handStep(res, now, dt){
   if(now - hPresentSince < 100) return;
 
   // swipes
-  const g = swipeIn(SW_DIST, SW_DIST_Y, 0, now >= hCoolV);
+  const g = swipeIn(swX(), swY(), 0, now >= hCoolV);
   if(g){ handAct(g.axis, g.dir, g.x0); return; }
 
   // hold still near the left or right side
@@ -2341,7 +2346,7 @@ function handStep(res, now, dt){
   if(hNeedMiddle || (hBlock && zone === -hBlock.dir)){ hHoldStart = now; setState("Ready · swipe or hold at a side", "active"); return; }
   if(hHoldUsed){ setState("Move your hand back to the middle", "active"); return; }
   let lo = 1, hi = 0; for(const h of hHist){ if(now - h.t < 450){ lo = Math.min(lo, h.x); hi = Math.max(hi, h.x); } }
-  if(hi - lo > STILL){ hHoldStart = now; setState("Ready · swipe or hold at a side", "active"); return; }
+  if(hi - lo > Math.max(0.025, hSize * 0.35)){ hHoldStart = now; setState("Ready · swipe or hold at a side", "active"); return; }
   if(now - hHoldStart > HOLD_TIME){ hHoldUsed = true; handAct("x", zone, 0.5); return; }
   if(now - hHoldStart > 250) setState("Hold…", "active");
 }
