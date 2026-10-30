@@ -614,6 +614,27 @@ body.immersive:not(:has(#reader[hidden])) #camFloat{display:grid!important}
 body:not(:has(#reader[hidden])) #micFloat{display:grid}
 body:not(.full) #micFloat{bottom:calc(76px + env(safe-area-inset-bottom,0px))}
 body:not(.full) #micHeard{bottom:calc(81px + env(safe-area-inset-bottom,0px))}
+
+/* translation button: bottom left, next to the eye */
+#trFloat{display:none;position:fixed;z-index:32;left:calc(max(10px,env(safe-area-inset-left,0px)) + 42px);bottom:calc(3px + env(safe-area-inset-bottom,0px));
+  width:34px;height:34px;border-radius:50%;place-items:center;padding:0;background:color-mix(in srgb,var(--pbg2) 90%,transparent);color:var(--pmark);
+  border:1px solid var(--pframe);box-shadow:0 1px 4px rgba(0,0,0,.12)}
+#trFloat svg{width:19px;height:19px}
+body.full:not(:has(#reader[hidden])) #trFloat{display:grid}
+/* landscape: buttons stacked in the side strips, clear of the Quran text */
+@media (orientation:landscape){
+  #homeFloat,#setFloat{left:max(10px,env(safe-area-inset-left,0px))!important}
+  #setFloat{top:calc(48px + env(safe-area-inset-top,0px))!important}
+  #camFloat,#bmFloat{right:max(10px,env(safe-area-inset-right,0px))!important}
+  #bmFloat{top:calc(48px + env(safe-area-inset-top,0px))!important}
+  #camLabel{top:calc(86px + env(safe-area-inset-top,0px))!important;right:max(4px,env(safe-area-inset-right,0px))!important}
+  #eyeFloat,#trFloat{left:max(10px,env(safe-area-inset-left,0px))!important}
+  #trFloat{bottom:calc(45px + env(safe-area-inset-bottom,0px))!important}
+  #micFloat,#reciteFloat{right:max(10px,env(safe-area-inset-right,0px))!important}
+  #reciteFloat{bottom:calc(45px + env(safe-area-inset-bottom,0px))!important}
+  #micHeard{right:calc(max(10px,env(safe-area-inset-right,0px)) + 44px)!important}
+  body.full #reader .phead{padding:0 60px!important}
+}
 </style>
 </head>
 <body>
@@ -806,6 +827,7 @@ body:not(.full) #micHeard{bottom:calc(81px + env(safe-area-inset-bottom,0px))}
 <div id="camLabel" aria-live="polite"></div>
 <div id="micHeard" aria-live="polite"></div>
 <button id="reciteFloat" aria-label="Recite: the ayah you read lights up and the page follows" title="Recite" data-state="off"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5.5c2.6-1 5.4-1 8 .8v13c-2.6-1.8-5.4-1.8-8-.8z"/><path d="M11 6.3c1.2-.8 2.5-1.2 3.8-1.3"/><path d="M17 8.5a3.5 3.5 0 0 1 0 5M19.5 6.5a6.5 6.5 0 0 1 0 9"/></svg></button>
+<button id="trFloat" aria-label="Show translation" title="Translation"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5h9M7.5 3v2M5 5c.6 3 2.8 5.6 6 7M10 5c-.7 3.2-3 6-6.5 7.5"/><path d="M13 21l3.8-9h.4L21 21M14.3 18h5.4"/></svg></button>
 <button id="eyeFloat" aria-label="Eye scroll: look at the bottom to scroll" title="Eye scroll" data-state="off"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
 <div id="eyeDot" hidden></div>
 <div id="eyeCal" hidden><div class="ecdot ectop"></div><div class="ecdot ecbot"></div><p id="eyeCalText"></p><button id="eyeCalCancel" class="ctl">Cancel</button></div>
@@ -1590,7 +1612,7 @@ async function fitMushaf(){
   const zoom = Math.max(1, arSize/30);
   const portrait = window.innerHeight >= window.innerWidth;
   // landscape: a comfortable book-width page that scrolls, instead of giant text
-  const W = (portrait ? avail : Math.min(avail, 720)) * zoom;
+  const W = (portrait ? avail : Math.min(avail - 120, 760)) * zoom;   // landscape: the buttons live in the side strips
   pageEl.style.width = W + "px";
   // fit the whole page on the screen: as wide as the screen allows, but never taller than it
   const box = $("pageBox"), head = box.querySelector(".phead"), foot = box.querySelector(".pfoot");
@@ -2762,6 +2784,7 @@ function stopEyeScroll(quiet){
 }
 function syncEyeBtn(){ const b = $("eyeFloat"); if(b){ b.dataset.state = eyeOn ? "on" : "off"; b.setAttribute("aria-pressed", eyeOn); } }
 $("eyeFloat").onclick = ()=> eyeOn ? stopEyeScroll() : startEyeScroll();
+$("trFloat").onclick = ()=>{ setViewTo("tr"); toast("Translation · " + (LANG[tr1]||tr1).split(" · ")[0] + " · tap Full Arabic to go back"); };
 $("eyeCalCancel").onclick = ()=> stopEyeScroll();
 
 const BONES=[[0,1],[1,2],[2,3],[3,4],[0,5],[5,6],[6,7],[7,8],[5,9],[9,10],[10,11],[11,12],[9,13],[13,14],[14,15],[15,16],[13,17],[17,18],[18,19],[19,20],[0,17]];
