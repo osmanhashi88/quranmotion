@@ -455,7 +455,7 @@ body.full #reader .rjump{display:none!important}
 body.full #reader .rbar{position:fixed;left:0;right:0;top:0;z-index:25;box-shadow:0 4px 16px rgba(0,0,0,.25)}
 body.full #reader .pbar{box-shadow:0 -4px 16px rgba(0,0,0,.18)}
 body.full .frame-in,body.full.immersive .frame-in{min-height:0!important}
-body.full #reader .mushaf{min-height:calc(100dvh - 4px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px))}
+body.full #reader .mushaf{min-height:calc(100svh - 4px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px))}
 body.full #reader .frame-in{padding:4px 8px 2px}
 body.full #reader .phead{padding:2px 46px 2px 46px!important;font-size:13px}
 body.full .pfoot{padding-top:0;min-height:18px}
@@ -1635,7 +1635,8 @@ async function fitMushaf(){
   const box = $("pageBox"), head = box.querySelector(".phead"), foot = box.querySelector(".pfoot");
   const csb = getComputedStyle(box);
   const chrome = (head?head.offsetHeight:0) + (foot?foot.offsetHeight:0) + parseFloat(csb.paddingTop) + parseFloat(csb.paddingBottom) + 12;
-  const availH = window.innerHeight - chrome;
+  // size for the screen with the browser's address bar showing (it comes and goes as you scroll)
+  const availH = smallScreenH() - chrome;
   const k = maxW/100, LH = opening ? 2.35 : 1.85;
   const lines = opening ? pageEl.querySelectorAll(".mline").length + 0.4 : 15;
   const byWidth = 0.985*W / (k + 2*PADX*0.985);
@@ -1666,6 +1667,14 @@ async function fitMushaf(){
     pageEl.style.fontSize = (parseFloat(pageEl.style.fontSize)*0.97) + "px";
   }
   pageEl.querySelectorAll(".mtitle").forEach(drawCartouche);
+  // a whole page that fits needs no scrolling: keep it at the top so nothing slides under the buttons
+  if(portrait && zoom <= 1.01 && !flip) requestAnimationFrame(()=>{ if(document.documentElement.scrollHeight <= smallScreenH() + 2 || window.scrollY < 120) window.scrollTo(0, 0); });
+}
+function smallScreenH(){
+  let pr = document.getElementById("svhProbe");
+  if(!pr){ pr = document.createElement("div"); pr.id = "svhProbe"; pr.style.cssText = "position:fixed;left:0;top:0;width:1px;height:100svh;visibility:hidden;pointer-events:none"; document.body.append(pr); }
+  const svh = pr.getBoundingClientRect().height;
+  return Math.min(window.innerHeight, svh > 100 ? svh : window.innerHeight);
 }
 // the decorated surah title: pointed ends, a double rule and two rosettes, drawn to fit its box exactly
 function drawCartouche(t){
