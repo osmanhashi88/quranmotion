@@ -635,6 +635,21 @@ body.full:not(:has(#reader[hidden])) #trFloat{display:grid}
   #micHeard{right:calc(max(10px,env(safe-area-inset-right,0px)) + 44px)!important}
   body.full #reader .phead{padding:0 60px!important}
 }
+
+/* translation view too: translation toggle, eye, recite and mic stay on screen */
+body:not(:has(#reader[hidden])) #trFloat,body:not(:has(#reader[hidden])) #eyeFloat,body:not(:has(#reader[hidden])) #reciteFloat,body:not(:has(#reader[hidden])) #micFloat{display:grid}
+#trFloat[data-state=on]{background:var(--pmark);color:var(--pbg);border-color:var(--pmark)}
+/* in translation view the bottom bar may show: lift the bottom buttons above it */
+body:not(.full):not(.immersive) #trFloat,body:not(.full):not(.immersive) #eyeFloat,body:not(.full):not(.immersive) #reciteFloat,body:not(.full):not(.immersive) #micFloat{bottom:calc(76px + env(safe-area-inset-bottom,0px))!important}
+body:not(.full):not(.immersive) #micHeard{bottom:calc(81px + env(safe-area-inset-bottom,0px))!important}
+body.immersive:not(.full) #micFloat{bottom:calc(3px + env(safe-area-inset-bottom,0px))}
+body.immersive:not(.full) #micHeard{bottom:calc(8px + env(safe-area-inset-bottom,0px))}
+@media (orientation:landscape){
+  body:not(.full):not(.immersive) #trFloat,body:not(.full):not(.immersive) #reciteFloat{bottom:calc(118px + env(safe-area-inset-bottom,0px))!important}
+  body:not(.full) #reader main{padding-left:max(58px,env(safe-area-inset-left,0px))!important;padding-right:max(58px,env(safe-area-inset-right,0px))!important}
+}
+#reader .ayah.rhl{border-radius:10px}
+body:not(.full) #reader main{padding-bottom:calc(64px + env(safe-area-inset-bottom,0px))}
 </style>
 </head>
 <body>
@@ -936,6 +951,8 @@ const syncSeg = ()=>{
   ["viewSeg","modeSeg"].forEach(id=>[...$(id).children].forEach(b=>b.setAttribute("aria-pressed", b.dataset.v===view)));
   $("trQuick").hidden = view !== "tr";
   document.body.classList.toggle("full", view === "mushaf");
+  const tb = document.getElementById("trFloat");
+  if(tb){ tb.dataset.state = view === "tr" ? "on" : "off"; tb.setAttribute("aria-label", view === "tr" ? "Back to Arabic only" : "Show translation"); tb.title = view === "tr" ? "Arabic only" : "Translation"; }
 };
 syncSeg();
 
@@ -2602,7 +2619,9 @@ function reciteHighlight(k){
   if(k === rCur) return; rCur = k;
   document.querySelectorAll("#pageBox .rhl").forEach(e=>e.classList.remove("rhl"));
   if(!k) return;
-  const els = [...document.querySelectorAll(`#pageBox [data-a="${k}"]`)]; if(!els.length) return;
+  let els = [...document.querySelectorAll(`#pageBox [data-a="${k}"]`)];
+  if(!els.length){ const [s,a] = k.split(":"); const blk = document.getElementById(`a-${s}-${a}`); if(blk) els = [blk]; }
+  if(!els.length) return;
   els.forEach(e=>e.classList.add("rhl"));
   // keep the ayah you are reading comfortably in view: when it nears the bottom, bring it up to the top third
   const top = Math.min(...els.map(e=>e.getBoundingClientRect().top)), bot = Math.max(...els.map(e=>e.getBoundingClientRect().bottom));
@@ -2784,7 +2803,10 @@ function stopEyeScroll(quiet){
 }
 function syncEyeBtn(){ const b = $("eyeFloat"); if(b){ b.dataset.state = eyeOn ? "on" : "off"; b.setAttribute("aria-pressed", eyeOn); } }
 $("eyeFloat").onclick = ()=> eyeOn ? stopEyeScroll() : startEyeScroll();
-$("trFloat").onclick = ()=>{ setViewTo("tr"); toast("Translation · " + (LANG[tr1]||tr1).split(" · ")[0] + " · tap Full Arabic to go back"); };
+$("trFloat").onclick = ()=>{
+  if(view === "tr"){ setViewTo("mushaf"); toast("Arabic only"); }
+  else { setViewTo("tr"); toast("Translation · " + (LANG[tr1]||tr1).split(" · ")[0] + " · tap again for Arabic only"); }
+};
 $("eyeCalCancel").onclick = ()=> stopEyeScroll();
 
 const BONES=[[0,1],[1,2],[2,3],[3,4],[0,5],[5,6],[6,7],[7,8],[5,9],[9,10],[10,11],[11,12],[9,13],[13,14],[14,15],[15,16],[13,17],[17,18],[18,19],[19,20],[0,17]];
