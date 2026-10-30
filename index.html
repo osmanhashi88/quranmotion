@@ -108,7 +108,7 @@ button{cursor:pointer;background:none;border:0;padding:0}
 body.full .reader main{padding-top:6px;padding-left:max(6px,env(safe-area-inset-left,0px));padding-right:max(6px,env(safe-area-inset-right,0px));max-width:820px}
 body.full .mushaf{padding:5px;border-radius:4px}
 body.full .frame{padding:3px;border-width:3px}
-body.full .frame-in{padding:12px clamp(10px,3vw,30px) 14px;min-height:calc(100vh - 230px);display:flex;flex-direction:column}
+body.full .frame-in{padding:12px clamp(10px,3vw,30px) 14px;min-height:calc(100svh - 230px);display:flex;flex-direction:column}
 body.full .flow{line-height:2.35;text-align-last:right}
 body.full .flow:last-of-type{text-align-last:center}
 body.full .frame-in > .phead:last-child{margin-top:auto!important}
@@ -210,7 +210,7 @@ body[data-rt=paper]{--pbg:#FBF3DF;--pbg2:#F3E6C4;--pink:#1B160E;--pframe:#B58F4C
 body[data-rt=white]{--pbg:#FFFFFF;--pbg2:#F1F4F2;--pink:#111614;--pframe:#9DB3AB;--pmark:#0E6656;--psoft:#E2ECE8}
 body[data-rt=night]{--pbg:#0B0B0A;--pbg2:#141310;--pink:#ECE6D6;--pframe:#5E5237;--pmark:#D2AE62;--psoft:#24211A}
 
-#reader{min-height:100vh;background:var(--pbg);transition:background .2s}
+#reader{min-height:100vh;min-height:100svh;background:var(--pbg);transition:background .2s}
 body:not([hidden]) #reader .mushaf{background:var(--pbg);box-shadow:none;color:var(--pink)}
 #reader .frame{border-color:var(--pframe)}
 #reader .frame-in{border-color:var(--pframe)}
@@ -243,7 +243,7 @@ body.immersive .rbar,body.immersive .rjump{display:none}
 body.immersive .pbar{transform:translateY(110%);opacity:0;pointer-events:none}
 body.immersive #cam{bottom:calc(12px + env(safe-area-inset-bottom,0px))}
 body.immersive .reader main{padding-top:calc(4px + env(safe-area-inset-top,0px));padding-bottom:20px}
-body.immersive .frame-in{min-height:calc(100vh - 30px)}
+body.immersive .frame-in{min-height:calc(100svh - 30px)}
 #pageBox{touch-action:pan-y}
 
 /* ===== Madinah mushaf style (like the Quran app) ===== */
@@ -650,6 +650,7 @@ body.immersive:not(.full) #micHeard{bottom:calc(8px + env(safe-area-inset-bottom
 }
 #reader .ayah.rhl{border-radius:10px}
 body:not(.full) #reader main{padding-bottom:calc(64px + env(safe-area-inset-bottom,0px))}
+@media (orientation:portrait){ body.full:not(:has(#reader[hidden])) #reader{min-height:0!important} }
 </style>
 </head>
 <body>
