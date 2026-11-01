@@ -2703,12 +2703,18 @@ function reciteWordsFromData(p){
   });
   return out.filter(x=>x.n);
 }
+// which Arabic the phone listens for: if nothing is understood for a while, try the next one
+const AR_LANGS = ["ar-SA","ar-AE","ar-EG","ar"]; let rLangIdx = Math.max(0, AR_LANGS.indexOf(store.get("reciteLang","ar-SA"))), rHeardAt = 0, rStartedAt = 0, rLangT = 0;
+function reciteStatus(t){ const h = $("micHeard"); if(!h) return; h.textContent = t; h.classList.add("show"); clearTimeout(heardT); heardT = setTimeout(()=>h.classList.remove("show"), 4000); }
 function startRecite(silent){
   if(!SpeechRec){ toast("Recite needs Chrome or Safari"); return; }
+  if(voiceOn && rrec === null && !silent){ pauseVoice(); reciteOn = true; syncRecite(); recitePrepare(); reciteStatus("Starting…"); setTimeout(()=>{ if(reciteOn && !rrec) startRecite(true); }, 450); return; }   // let the microphone free up first
   if(voiceOn) pauseVoice();
   reciteOn = true; syncRecite(); if(!silent) recitePrepare();
+  if(!silent){ rHeardAt = 0; rStartedAt = performance.now(); clearInterval(rLangT); rLangT = setInterval(reciteLangCheck, 5000); }
   const r = new SpeechRec(); rrec = r; const sid = ++rSession;
-  r.lang = "ar-SA"; r.continuous = true; r.interimResults = true; r.maxAlternatives = 1;
+  r.lang = AR_LANGS[rLangIdx]; r.continuous = true; r.interimResults = true; r.maxAlternatives = 1;
+  r.onstart = ()=>{ if(!rHeardAt) reciteStatus("Listening in Arabic… start reading"); };
   r.onresult = e=>{
     for(let i = e.resultIndex; i < e.results.length; i++){
       const key = sid + ":" + i, words = e.results[i][0].transcript.trim().split(/\s+/).filter(Boolean);
@@ -2716,19 +2722,32 @@ function startRecite(silent){
       // the newest words; the very last one may still change while you speak, so wait for it unless the sentence is finished
       const upto = e.results[i].isFinal ? words.length : Math.max(done, words.length - 1);
       if(upto > done){ reciteHear(words.slice(done, upto)); rDone.set(key, upto); }
-      if(words.length) showHeard(words.slice(-3).join(" "));
+      if(words.length){ showHeard(words.slice(-3).join(" ")); rHeardAt = performance.now(); store.set("reciteLang", AR_LANGS[rLangIdx]); }
     }
   };
   r.onerror = e=>{
     if(e.error === "not-allowed" || e.error === "service-not-allowed"){ toast("Microphone blocked · allow it next to the web address"); stopRecite(true); }
-    else if(e.error === "language-not-supported"){ toast("Arabic listening is not available on this device"); stopRecite(true); }
+    else if(e.error === "language-not-supported"){ if(rLangIdx < AR_LANGS.length-1){ rLangIdx++; } else { toast("Arabic listening is not available on this device"); stopRecite(true); } }
+    else if(e.error === "network") reciteStatus("No internet · recite needs internet");
+    else if(e.error === "audio-capture") reciteStatus("Microphone busy · close other apps using it");
+    else if(e.error === "no-speech" && !rHeardAt) reciteStatus("No speech heard · read a little louder or closer");
   };
   r.onend = ()=>{ if(rrec === r) rrec = null; if(reciteOn && isReading()){ clearTimeout(rRestartT); rRestartT = setTimeout(()=>{ if(reciteOn && !rrec) startRecite(true); }, 250); } };
   try{ r.start(); }catch{}
   if(!silent) toast("Start reciting · the ayah you read lights up");
 }
+// nothing understood after a while? try the next kind of Arabic
+function reciteLangCheck(){
+  if(!reciteOn){ clearInterval(rLangT); return; }
+  const now = performance.now();
+  if(!rHeardAt && now - rStartedAt > 12000 && rLangIdx < AR_LANGS.length - 1){
+    rLangIdx++; rStartedAt = now; reciteStatus("Trying " + AR_LANGS[rLangIdx] + " Arabic…");
+    const r = rrec; rrec = null; if(r){ r.onend = null; try{ r.abort(); }catch{} }
+    setTimeout(()=>{ if(reciteOn && !rrec) startRecite(true); }, 350);
+  }
+}
 function stopRecite(quiet){
-  reciteOn = false; clearTimeout(rTurnT); clearTimeout(rRestartT);
+  reciteOn = false; clearTimeout(rTurnT); clearTimeout(rRestartT); clearInterval(rLangT);
   const r = rrec; rrec = null; if(r){ r.onend = null; try{ r.abort(); }catch{} }
   rCur = ""; document.querySelectorAll("#pageBox .rhl").forEach(e=>e.classList.remove("rhl"));
   syncRecite(); if(!quiet) toast("Recite off");
