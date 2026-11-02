@@ -652,6 +652,8 @@ body.immersive:not(.full) #micHeard{bottom:calc(8px + env(safe-area-inset-bottom
 body:not(.full) #reader main{padding-bottom:calc(64px + env(safe-area-inset-bottom,0px))}
 @media (orientation:portrait){ body.full:not(:has(#reader[hidden])) #reader{min-height:0!important} }
 </style>
+<!-- Visitor counts by GoatCounter: no cookies, no personal data. Dashboard: https://quranmotion.goatcounter.com -->
+<script data-goatcounter="https://quranmotion.goatcounter.com/count" data-goatcounter-settings='{"allow_local": false}' async src="https://gc.zgo.at/count.js"></script>
 </head>
 <body>
 
@@ -1446,6 +1448,8 @@ function showScreen(){
   window.scrollTo(0,0);
 }
 window.addEventListener("hashchange", ()=>{ showScreen(); if(isReading()) render(page); });
+// count "opened the Quran" as its own page in the visitor stats
+window.addEventListener("hashchange", ()=>{ if(location.hash === "#read") try{ window.goatcounter && window.goatcounter.count && window.goatcounter.count({path:"/read", title:"Reading the Quran"}); }catch{} });
 // Home: back to the surah list, without leaving the app
 function goHome(){
   if(location.hash === "#read"){ history.replaceState(null, "", location.pathname + location.search); showScreen(); }
